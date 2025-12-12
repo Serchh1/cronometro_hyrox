@@ -3,10 +3,6 @@
 <head>
 <meta charset="UTF-8">
 <title>Display de Cronómetros</title>
-
-<!-- Firebase -->
-<script type="module" src="firebase.js"></script>
-
 <style>
     body {
         margin: 0;
@@ -59,33 +55,45 @@
 </div>
 
 <script type="module">
-import { db, ref, onValue } from "./firebase.js";
+import { initializeApp } 
+  from "https://www.gstatic.com/firebasejs/12.6.0/firebase-app.js";
+import { getFirestore, doc, onSnapshot }
+  from "https://www.gstatic.com/firebasejs/12.6.0/firebase-firestore.js";
 
-// Escucha los 20 contadores
+const firebaseConfig = {
+  apiKey: "AIzaSyAJqYhseyN-s6s79WxFlljQlKNSkMRkptE",
+  authDomain: "cronometros-grupos.firebaseapp.com",
+  projectId: "cronometros-grupos",
+  storageBucket: "cronometros-grupos.firebasestorage.app",
+  messagingSenderId: "886340826784",
+  appId: "1:886340826784:web:63897dd9170825bc15fbc5",
+  measurementId: "G-KD241WKQZ2"
+};
+
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+
+function format(ms) {
+    let totalSec = Math.floor(ms / 1000);
+    let min = String(Math.floor(totalSec / 60)).padStart(2,'0');
+    let sec = String(totalSec % 60).padStart(2,'0');
+    return `${min}:${sec}`;
+}
+
 for (let i = 1; i <= 20; i++) {
+    const ref = doc(db, "cronometros", "grupo" + i);
 
-    const r = ref(db, "timers/grupo" + i);
+    onSnapshot(ref, (snap) => {
+        if (!snap.exists()) return;
 
-    onValue(r, (snap) => {
-        const data = snap.val();
-        if (!data) return;
+        const data = snap.data();
+        let ms = data.elapsed;
 
-        const element = document.getElementById("g" + i);
-
-        if (data.state === "running") {
-            const start = data.startTime;
-
-            setInterval(() => {
-                const diff = Math.floor((Date.now() - start) / 1000);
-                const mm = String(Math.floor(diff / 60)).padStart(2, "0");
-                const ss = String(diff % 60).padStart(2, "0");
-                element.textContent = `${mm}:${ss}`;
-            }, 1000);
+        if (data.running) {
+            ms += Date.now() - data.startTime;
         }
 
-        if (data.state === "stopped") {
-            element.textContent = "00:00";
-        }
+        document.getElementById("g"+i).innerText = format(ms);
     });
 }
 </script>
