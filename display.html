@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<title>Display de Cronómetros</title>
+
+<!-- Firebase -->
+<script type="module" src="firebase.js"></script>
+
+<style>
+    body {
+        margin: 0;
+        background: #111;
+        color: white;
+        font-family: Arial, sans-serif;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+    }
+    .grid {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 25px;
+        width: 90%;
+        margin-top: 20px;
+    }
+    .timer {
+        background: #222;
+        border-radius: 15px;
+        padding: 20px;
+        text-align: center;
+        box-shadow: 0 0 8px #000;
+    }
+    .label {
+        font-size: 28px;
+        margin-bottom: 10px;
+        opacity: 0.8;
+    }
+    .time {
+        font-size: 90px;
+        font-weight: bold;
+        letter-spacing: 3px;
+    }
+</style>
+</head>
+<body>
+
+<div class="grid">
+    <script>
+        for (let i = 1; i <= 20; i++) {
+            document.write(`
+                <div class="timer">
+                    <div class="label">Grupo ${i}</div>
+                    <div class="time" id="g${i}">00:00</div>
+                </div>
+            `);
+        }
+    </script>
+</div>
+
+<script type="module">
+import { db, ref, onValue } from "./firebase.js";
+
+// Escucha los 20 contadores
+for (let i = 1; i <= 20; i++) {
+
+    const r = ref(db, "timers/grupo" + i);
+
+    onValue(r, (snap) => {
+        const data = snap.val();
+        if (!data) return;
+
+        const element = document.getElementById("g" + i);
+
+        if (data.state === "running") {
+            const start = data.startTime;
+
+            setInterval(() => {
+                const diff = Math.floor((Date.now() - start) / 1000);
+                const mm = String(Math.floor(diff / 60)).padStart(2, "0");
+                const ss = String(diff % 60).padStart(2, "0");
+                element.textContent = `${mm}:${ss}`;
+            }, 1000);
+        }
+
+        if (data.state === "stopped") {
+            element.textContent = "00:00";
+        }
+    });
+}
+</script>
+
+</body>
+</html>

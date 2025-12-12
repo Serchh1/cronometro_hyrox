@@ -1,0 +1,18 @@
+<!-- init_data.html (solo usar una vez) -->
+<!doctype html>
+<html>
+<body>
+<script type="module">
+import { db, ref, set } from './firebase.js';
+async function init() {
+  const base = {};
+  for (let i=1;i<=20;i++){
+    base['grupo'+i] = { state: 'stopped', startTime: 0 };
+  }
+  await set(ref(db, 'timers'), base);
+  alert('Inicializado 20 cronómetros');
+}
+init();
+</script>
+</body>
+</html>

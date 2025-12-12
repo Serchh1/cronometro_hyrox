@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<title>Panel de Control</title>
+
+<script type="module" src="firebase.js"></script>
+
+<style>
+    body {
+        margin: 0;
+        background: #f3f3f3;
+        font-family: Arial, sans-serif;
+        padding: 20px;
+    }
+    h1 { text-align: center; margin-bottom: 10px; }
+    #clock { text-align: right; font-size: 24px; font-weight: bold; }
+    .panel {
+        max-width: 400px;
+        margin: auto;
+        background: white;
+        padding: 25px;
+        border-radius: 15px;
+        box-shadow: 0 0 10px #bbb;
+    }
+    button {
+        width: 45%;
+        padding: 15px;
+        font-size: 20px;
+        border: none;
+        border-radius: 10px;
+        cursor: pointer;
+        color: white;
+    }
+    #play { background: #28a745; }
+    #reset { background: #dc3545; }
+    .btns { display: flex; justify-content: space-between; }
+    select {
+        width: 100%;
+        padding: 10px;
+        font-size: 20px;
+        margin-bottom: 20px;
+    }
+</style>
+</head>
+<body>
+
+<h1>Control de Cronómetros</h1>
+
+<div id="clock">00:00:00</div>
+
+<div class="panel">
+    <label>Selecciona un grupo:</label>
+    <select id="grupo">
+        <script>
+            for (let i = 1; i <= 20; i++) {
+                document.write(`<option value="${i}">Grupo ${i}</option>`);
+            }
+        </script>
+    </select>
+
+    <div class="btns">
+        <button id="play">▶ Iniciar</button>
+        <button id="reset">⟳ Reset</button>
+    </div>
+</div>
+
+<script type="module">
+import { db, ref, update, set } from "./firebase.js";
+
+// Reloj local
+setInterval(() => {
+    document.getElementById("clock").innerText = new Date().toLocaleTimeString();
+}, 1000);
+
+// Botón PLAY
+document.getElementById("play").onclick = () => {
+    const g = document.getElementById("grupo").value;
+
+    update(ref(db, "timers/grupo" + g), {
+        state: "running",
+        startTime: Date.now()
+    });
+};
+
+// RESET con presión larga de 3s
+let pressTimer = null;
+
+const resetBtn = document.getElementById("reset");
+
+resetBtn.addEventListener("mousedown", () => {
+    pressTimer = setTimeout(() => resetFull(), 3000);
+});
+
+resetBtn.addEventListener("mouseup", () => {
+    if (pressTimer) {
+        clearTimeout(pressTimer);
+        resetSimple();
+    }
+});
+
+function resetSimple() {
+    const g = document.getElementById("grupo").value;
+    update(ref(db, "timers/grupo" + g), {
+        state: "stopped"
+    });
+}
+
+function resetFull() {
+    const g = document.getElementById("grupo").value;
+    set(ref(db, "timers/grupo" + g), {
+        state: "stopped"
+    });
+    alert("Reinicio total aplicado a Grupo " + g);
+}
+</script>
+
+</body>
+</html>
