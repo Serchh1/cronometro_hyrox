@@ -3,9 +3,6 @@
 <head>
 <meta charset="UTF-8">
 <title>Panel de Control</title>
-
-<script type="module" src="firebase.js"></script>
-
 <style>
     body {
         margin: 0;
@@ -13,8 +10,16 @@
         font-family: Arial, sans-serif;
         padding: 20px;
     }
-    h1 { text-align: center; margin-bottom: 10px; }
-    #clock { text-align: right; font-size: 24px; font-weight: bold; }
+    h1 {
+        text-align: center;
+        margin-bottom: 10px;
+    }
+    #clock {
+        text-align: right;
+        font-size: 24px;
+        margin-bottom: 20px;
+        font-weight: bold;
+    }
     .panel {
         max-width: 400px;
         margin: auto;
@@ -22,6 +27,12 @@
         padding: 25px;
         border-radius: 15px;
         box-shadow: 0 0 10px #bbb;
+    }
+    select {
+        width: 100%;
+        padding: 10px;
+        font-size: 20px;
+        margin-bottom: 20px;
     }
     button {
         width: 45%;
@@ -34,12 +45,9 @@
     }
     #play { background: #28a745; }
     #reset { background: #dc3545; }
-    .btns { display: flex; justify-content: space-between; }
-    select {
-        width: 100%;
-        padding: 10px;
-        font-size: 20px;
-        margin-bottom: 20px;
+    .btns {
+        display: flex;
+        justify-content: space-between;
     }
 </style>
 </head>
@@ -65,53 +73,84 @@
     </div>
 </div>
 
+<script>
+    function updateClock() {
+        const now = new Date();
+        document.getElementById("clock").innerText = now.toLocaleTimeString();
+    }
+    setInterval(updateClock, 1000);
+    updateClock();
+</script>
+
 <script type="module">
-import { db, ref, update, set } from "./firebase.js";
+import { initializeApp } 
+  from "https://www.gstatic.com/firebasejs/12.6.0/firebase-app.js";
+import { getFirestore, doc, getDoc, setDoc, updateDoc }
+  from "https://www.gstatic.com/firebasejs/12.6.0/firebase-firestore.js";
 
-// Reloj local
-setInterval(() => {
-    document.getElementById("clock").innerText = new Date().toLocaleTimeString();
-}, 1000);
-
-// Botón PLAY
-document.getElementById("play").onclick = () => {
-    const g = document.getElementById("grupo").value;
-
-    update(ref(db, "timers/grupo" + g), {
-        state: "running",
-        startTime: Date.now()
-    });
+const firebaseConfig = {
+  apiKey: "AIzaSyAJqYhseyN-s6s79WxFlljQlKNSkMRkptE",
+  authDomain: "cronometros-grupos.firebaseapp.com",
+  projectId: "cronometros-grupos",
+  storageBucket: "cronometros-grupos.firebasestorage.app",
+  messagingSenderId: "886340826784",
+  appId: "1:886340826784:web:63897dd9170825bc15fbc5",
+  measurementId: "G-KD241WKQZ2"
 };
 
-// RESET con presión larga de 3s
-let pressTimer = null;
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
 
-const resetBtn = document.getElementById("reset");
+const btnPlay = document.getElementById("play");
+const btnReset = document.getElementById("reset");
+const select = document.getElementById("grupo");
 
-resetBtn.addEventListener("mousedown", () => {
-    pressTimer = setTimeout(() => resetFull(), 3000);
-});
-
-resetBtn.addEventListener("mouseup", () => {
-    if (pressTimer) {
-        clearTimeout(pressTimer);
-        resetSimple();
+async function ensureDoc(id) {
+    const ref = doc(db, "cronometros", id);
+    const snap = await getDoc(ref);
+    if (!snap.exists()) {
+        await setDoc(ref, {
+            running: false,
+            startTime: 0,
+            elapsed: 0
+        });
     }
-});
-
-function resetSimple() {
-    const g = document.getElementById("grupo").value;
-    update(ref(db, "timers/grupo" + g), {
-        state: "stopped"
-    });
+    return ref;
 }
 
-function resetFull() {
-    const g = document.getElementById("grupo").value;
-    set(ref(db, "timers/grupo" + g), {
-        state: "stopped"
+btnPlay.onclick = async () => {
+    const id = "grupo" + select.value;
+    const ref = await ensureDoc(id);
+    const snap = await getDoc(ref);
+    const data = snap.data();
+
+    if (!data.running) {
+        await updateDoc(ref, {
+            running: true,
+            startTime: Date.now()
+        });
+    }
+};
+
+let pressTimer;
+
+btnReset.onmousedown = () => {
+    pressTimer = setTimeout(resetTimer, 3000);
+};
+
+btnReset.onmouseup = () => {
+    clearTimeout(pressTimer);
+};
+
+async function resetTimer() {
+    const id = "grupo" + select.value;
+    const ref = await ensureDoc(id);
+
+    await updateDoc(ref, {
+        running: false,
+        elapsed: 0,
+        startTime: 0
     });
-    alert("Reinicio total aplicado a Grupo " + g);
 }
 </script>
 
