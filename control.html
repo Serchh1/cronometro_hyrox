@@ -3,6 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <title>Panel de Control</title>
+
 <style>
     body {
         margin: 0;
@@ -51,6 +52,7 @@
     }
 </style>
 </head>
+
 <body>
 
 <h1>Control de Cronómetros</h1>
@@ -73,19 +75,21 @@
     </div>
 </div>
 
+<!-- Reloj local -->
 <script>
-    function updateClock() {
-        const now = new Date();
-        document.getElementById("clock").innerText = now.toLocaleTimeString();
-    }
-    setInterval(updateClock, 1000);
-    updateClock();
+function updateClock() {
+    const now = new Date();
+    document.getElementById("clock").innerText = now.toLocaleTimeString();
+}
+setInterval(updateClock, 1000);
+updateClock();
 </script>
 
+<!-- Firebase -->
 <script type="module">
 import { initializeApp } 
   from "https://www.gstatic.com/firebasejs/12.6.0/firebase-app.js";
-import { getFirestore, doc, getDoc, setDoc, updateDoc }
+import { getFirestore, doc, setDoc }
   from "https://www.gstatic.com/firebasejs/12.6.0/firebase-firestore.js";
 
 const firebaseConfig = {
@@ -105,53 +109,88 @@ const btnPlay = document.getElementById("play");
 const btnReset = document.getElementById("reset");
 const select = document.getElementById("grupo");
 
-async function ensureDoc(id) {
-    const ref = doc(db, "cronometros", id);
-    const snap = await getDoc(ref);
-    if (!snap.exists()) {
-        await setDoc(ref, {
-            running: false,
-            startTime: 0,
-            elapsed: 0
-        });
-    }
-    return ref;
-}
-
-btnPlay.onclick = async () => {
+/* ======================
+   START (INICIAR)
+   ====================== */
+btnPlay.addEventListener("click", async () => {
     const id = "grupo" + select.value;
-    const ref = await ensureDoc(id);
-    const snap = await getDoc(ref);
-    const data = snap.data();
+    const ref = doc(db, "cronometros", id);
 
-    if (!data.running) {
-        await updateDoc(ref, {
+    try {
+        await setDoc(ref, {
             running: true,
             startTime: Date.now()
-        });
+        }, { merge: true });
+
+        console.log("START enviado a", id);
+
+        btnPlay.textContent = "▶️ Iniciado";
+        setTimeout(() => btnPlay.textContent = "▶ Iniciar", 800);
+
+    } catch (e) {
+        console.error("Error START:", e);
+        alert("No se pudo iniciar el cronómetro");
     }
-};
+});
 
-let pressTimer;
+/* ======================
+   RESET (CORTO / LARGO)
+   ====================== */
+let pressTimer = null;
 
-btnReset.onmousedown = () => {
-    pressTimer = setTimeout(resetTimer, 3000);
-};
+// RESET LARGO (3 segundos)
+btnReset.addEventListener("mousedown", () => {
+    pressTimer = setTimeout(async () => {
+        const id = "grupo" + select.value;
+        const ref = doc(db, "cronometros", id);
 
-btnReset.onmouseup = () => {
-    clearTimeout(pressTimer);
-};
+        try {
+            await setDoc(ref, {
+                running: false,
+                elapsed: 0,
+                startTime: 0
+            }, { merge: true });
 
-async function resetTimer() {
-    const id = "grupo" + select.value;
-    const ref = await ensureDoc(id);
+            console.log("RESET TOTAL", id);
+            alert("Reset total aplicado a " + id);
 
-    await updateDoc(ref, {
-        running: false,
-        elapsed: 0,
-        startTime: 0
-    });
-}
+        } catch (e) {
+            console.error("Error reset largo:", e);
+        }
+    }, 3000);
+});
+
+// RESET CORTO (soltar)
+btnReset.addEventListener("mouseup", async () => {
+    if (pressTimer) {
+        clearTimeout(pressTimer);
+        pressTimer = null;
+
+        const id = "grupo" + select.value;
+        const ref = doc(db, "cronometros", id);
+
+        try {
+            await setDoc(ref, {
+                running: false
+            }, { merge: true });
+
+            console.log("RESET CORTO", id);
+
+        } catch (e) {
+            console.error("Error reset corto:", e);
+        }
+    }
+});
+
+// Soporte táctil
+btnReset.addEventListener("touchstart", e => {
+    e.preventDefault();
+    btnReset.dispatchEvent(new Event("mousedown"));
+});
+btnReset.addEventListener("touchend", e => {
+    e.preventDefault();
+    btnReset.dispatchEvent(new Event("mouseup"));
+});
 </script>
 
 </body>
