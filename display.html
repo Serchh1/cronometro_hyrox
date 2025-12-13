@@ -3,56 +3,60 @@
 <head>
 <meta charset="UTF-8">
 <title>Display de Cronómetros</title>
+
 <style>
-    body {
-        margin: 0;
-        background: #111;
-        color: white;
-        font-family: Arial, sans-serif;
-        display: flex;
-        justify-content: center;
-        align-items: center;
-    }
-    .grid {
-        display: grid;
-        grid-template-columns: repeat(3, 1fr);
-        gap: 25px;
-        width: 90%;
-        margin-top: 20px;
-    }
-    .timer {
-        background: #222;
-        border-radius: 15px;
-        padding: 20px;
-        text-align: center;
-        box-shadow: 0 0 8px #000;
-    }
-    .label {
-        font-size: 28px;
-        margin-bottom: 10px;
-        opacity: 0.8;
-    }
-    .time {
-        font-size: 90px;
-        font-weight: bold;
-        letter-spacing: 3px;
-    }
+html, body {
+    margin: 0;
+    padding: 0;
+    background: #000;
+    color: #fff;
+    font-family: Arial, sans-serif;
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+}
+
+/* GRID PRINCIPAL */
+.grid {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    grid-template-rows: repeat(4, 1fr);
+    gap: 10px;
+    width: 100vw;
+    height: 100vh;
+    padding: 10px;
+    box-sizing: border-box;
+}
+
+/* TARJETA DE CADA CRONÓMETRO */
+.timer {
+    background: #111;
+    border-radius: 12px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+}
+
+/* TEXTO "GRUPO X" */
+.label {
+    font-size: clamp(14px, 1.8vw, 22px);
+    opacity: 0.8;
+    margin-bottom: 5px;
+}
+
+/* TIEMPO MM:SS */
+.time {
+    font-size: clamp(32px, 6vw, 80px);
+    font-weight: bold;
+    letter-spacing: 2px;
+}
 </style>
 </head>
+
 <body>
 
-<div class="grid">
-    <script>
-        for (let i = 1; i <= 20; i++) {
-            document.write(`
-                <div class="timer">
-                    <div class="label">Grupo ${i}</div>
-                    <div class="time" id="g${i}">00:00</div>
-                </div>
-            `);
-        }
-    </script>
-</div>
+<div class="grid" id="grid"></div>
 
 <script type="module">
 import { initializeApp } 
@@ -60,6 +64,9 @@ import { initializeApp }
 import { getFirestore, doc, onSnapshot }
   from "https://www.gstatic.com/firebasejs/12.6.0/firebase-firestore.js";
 
+/* ======================
+   FIREBASE CONFIG
+   ====================== */
 const firebaseConfig = {
   apiKey: "AIzaSyAJqYhseyN-s6s79WxFlljQlKNSkMRkptE",
   authDomain: "cronometros-grupos.firebaseapp.com",
@@ -73,13 +80,45 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 
-function format(ms) {
-    let totalSec = Math.floor(ms / 1000);
-    let min = String(Math.floor(totalSec / 60)).padStart(2,'0');
-    let sec = String(totalSec % 60).padStart(2,'0');
-    return `${min}:${sec}`;
+/* ======================
+   CREAR UI (20 GRUPOS)
+   ====================== */
+const grid = document.getElementById("grid");
+const timers = {};
+
+for (let i = 1; i <= 20; i++) {
+    const div = document.createElement("div");
+    div.className = "timer";
+    div.innerHTML = `
+        <div class="label">Grupo ${i}</div>
+        <div class="time" id="time${i}">00:00</div>
+    `;
+    grid.appendChild(div);
+
+    timers[i] = {
+        running: false,
+        startTime: 0,
+        elapsed: 0
+    };
 }
 
+/* ======================
+   FORMATO MM:SS con límite 99:99
+   ====================== */
+function formatTime(ms) {
+    let totalSeconds = Math.floor(ms / 1000);
+    let minutes = Math.floor(totalSeconds / 60);
+    let seconds = totalSeconds % 60;
+
+    if (minutes > 99) minutes = 99;
+    if (seconds > 99) seconds = 99;
+
+    return `${String(minutes).padStart(2, "0")}:${String(seconds).padStart(2, "0")}`;
+}
+
+/* ======================
+   ESCUCHAR FIRESTORE
+   ====================== */
 for (let i = 1; i <= 20; i++) {
     const ref = doc(db, "cronometros", "grupo" + i);
 
@@ -87,15 +126,32 @@ for (let i = 1; i <= 20; i++) {
         if (!snap.exists()) return;
 
         const data = snap.data();
-        let ms = data.elapsed;
-
-        if (data.running) {
-            ms += Date.now() - data.startTime;
-        }
-
-        document.getElementById("g"+i).innerText = format(ms);
+        timers[i].running = data.running;
+        timers[i].startTime = data.startTime || 0;
+        timers[i].elapsed = data.elapsed || 0;
     });
 }
+
+/* ======================
+   LOOP DE ACTUALIZACIÓN
+   ====================== */
+setInterval(() => {
+    const now = Date.now();
+
+    for (let i = 1; i <= 20; i++) {
+        let ms = timers[i].elapsed;
+
+        if (timers[i].running && timers[i].startTime) {
+            ms += now - timers[i].startTime;
+        }
+
+        if (ms > 99 * 60 * 1000 + 99 * 1000) {
+            ms = 99 * 60 * 1000 + 99 * 1000;
+        }
+
+        document.getElementById("time" + i).innerText = formatTime(ms);
+    }
+}, 500);
 </script>
 
 </body>
