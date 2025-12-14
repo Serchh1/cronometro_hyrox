@@ -50,6 +50,7 @@
             border: 2px solid #ff8c00;
             border-radius: 8px;
             margin-bottom: 20px;
+            font-size: 14px;
         }
         
         .status.connected {
@@ -60,6 +61,21 @@
         .status.error {
             border-color: #ff0000;
             color: #ff0000;
+        }
+
+        .error-details {
+            background: #1a0000;
+            border: 2px solid #ff0000;
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 20px;
+            font-size: 12px;
+            color: #ff6b6b;
+            display: none;
+        }
+
+        .error-details.show {
+            display: block;
         }
         
         .current-timer {
@@ -127,13 +143,18 @@
         button:active {
             transform: scale(0.95);
         }
+
+        button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
         
         .btn-start {
             background: #ff8c00;
             color: #000;
         }
         
-        .btn-start:hover {
+        .btn-start:hover:not(:disabled) {
             background: #cc7000;
         }
         
@@ -148,7 +169,7 @@
             overflow: hidden;
         }
         
-        .btn-reset:hover {
+        .btn-reset:hover:not(:disabled) {
             background: #ccc;
         }
         
@@ -161,7 +182,7 @@
             overflow: hidden;
         }
         
-        .btn-reset-all:hover {
+        .btn-reset-all:hover:not(:disabled) {
             background: #c82333;
         }
         
@@ -233,6 +254,15 @@
             margin: 20px 0 10px;
             text-transform: uppercase;
         }
+
+        .debug-btn {
+            background: #333;
+            color: #fff;
+            padding: 10px 15px;
+            border-radius: 5px;
+            font-size: 12px;
+            margin-left: 10px;
+        }
     </style>
 </head>
 <body>
@@ -240,6 +270,7 @@
         <a href="index.html" class="back-btn">← VOLVER AL MENÚ</a>
         
         <div class="status" id="status">⚠️ Conectando...</div>
+        <div class="error-details" id="errorDetails"></div>
         
         <div class="current-timer">
             <div class="current-label" id="currentLabel">Hit 1</div>
@@ -250,8 +281,8 @@
         <select id="groupSelect"></select>
         
         <div class="buttons">
-            <button class="btn-start" id="btnStart">▶ INICIAR</button>
-            <button class="btn-reset" id="btnReset">
+            <button class="btn-start" id="btnStart" disabled>▶ INICIAR</button>
+            <button class="btn-reset" id="btnReset" disabled>
                 🔄 RESET
                 <div class="progress-bar" id="progressBar"></div>
             </button>
@@ -261,7 +292,7 @@
             <div class="progress-text">Mantenga presionado 3 segundos...</div>
         </div>
         
-        <button class="btn-reset-all" id="btnResetAll">
+        <button class="btn-reset-all" id="btnResetAll" disabled>
             🔄 RESETEAR TODOS
             <div class="progress-bar" id="progressBarAll"></div>
         </button>
@@ -270,7 +301,10 @@
             <div class="progress-text">Mantenga presionado 5 segundos...</div>
         </div>
         
-        <div class="section-title">Estado de todos los Hits:</div>
+        <div class="section-title">
+            Estado de todos los Hits:
+            <button class="debug-btn" id="debugBtn">🔍 Debug</button>
+        </div>
         <div class="grid-preview" id="gridPreview"></div>
     </div>
 
@@ -283,7 +317,8 @@
         const SUPABASE_URL = 'https://diuamkiidwpctdrqdzcd.supabase.co';
         const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRpdWFta2lpZHdwY3RkcnFkemNkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjU2ODc4MDMsImV4cCI6MjA4MTI2MzgwM30.rQ2kU9zfxJ-mLQac63oi4TrPTg7e1-BZifaECVAdFyw';
 
-        const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
+        let supabase;
+        let isConnected = false;
 
         // ============================================
         // VARIABLES GLOBALES
@@ -294,6 +329,43 @@
         let resetAllTimeout = null;
         let resetInterval = null;
         let resetAllInterval = null;
+
+        // ============================================
+        // FUNCIONES DE UI
+        // ============================================
+        function showError(message, details = '') {
+            const status = document.getElementById('status');
+            status.textContent = '❌ Error: ' + message;
+            status.classList.remove('connected');
+            status.classList.add('error');
+
+            if (details) {
+                const errorDiv = document.getElementById('errorDetails');
+                errorDiv.textContent = 'Detalles: ' + details;
+                errorDiv.classList.add('show');
+            }
+        }
+
+        function showSuccess(message) {
+            const status = document.getElementById('status');
+            status.textContent = '✅ ' + message;
+            status.classList.add('connected');
+            status.classList.remove('error');
+            
+            const errorDiv = document.getElementById('errorDetails');
+            errorDiv.classList.remove('show');
+            
+            // Habilitar botones
+            document.getElementById('btnStart').disabled = false;
+            document.getElementById('btnReset').disabled = false;
+            document.getElementById('btnResetAll').disabled = false;
+            
+            isConnected = true;
+        }
+
+        function showStatus(message) {
+            document.getElementById('status').textContent = message;
+        }
 
         // ============================================
         // FORMATO MM:SS
@@ -342,6 +414,39 @@
         }
 
         // ============================================
+        // INICIALIZAR SUPABASE
+        // ============================================
+        async function initSupabase() {
+            try {
+                showStatus('🔌 Conectando a Supabase...');
+                supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
+                
+                // Test de conexión
+                showStatus('🔍 Verificando conexión...');
+                const { error: testError } = await supabase
+                    .from('cronometros')
+                    .select('count')
+                    .limit(1);
+                
+                if (testError) {
+                    throw new Error(`Error de conexión: ${testError.message}`);
+                }
+                
+                showStatus('📥 Cargando datos...');
+                await loadInitialData();
+                
+                showStatus('🔔 Configurando tiempo real...');
+                await setupRealtime();
+                
+                showSuccess('Conectado y sincronizado');
+                
+            } catch (error) {
+                console.error('Error de inicialización:', error);
+                showError('No se pudo conectar', error.message);
+            }
+        }
+
+        // ============================================
         // CARGAR DATOS INICIALES
         // ============================================
         async function loadInitialData() {
@@ -351,53 +456,66 @@
                     .select('*')
                     .order('grupo');
                 
-                if (error) throw error;
+                if (error) {
+                    throw new Error(`Error al cargar datos: ${error.message}`);
+                }
                 
                 if (!data || data.length === 0) {
-                    throw new Error('No se encontraron datos en la tabla.');
+                    throw new Error('La tabla está vacía. Ejecuta el SQL para crear los 20 registros.');
                 }
+
+                if (data.length < 20) {
+                    throw new Error(`Solo hay ${data.length} registros. Se necesitan 20.`);
+                }
+                
+                console.log('Datos cargados:', data);
                 
                 data.forEach(item => {
                     timers[item.grupo] = {
-                        running: item.running,
-                        startTime: item.start_time,
-                        elapsed: item.elapsed
+                        running: item.running || false,
+                        startTime: item.start_time || 0,
+                        elapsed: item.elapsed || 0
                     };
                 });
                 
-                document.getElementById('status').textContent = '✅ Conectado';
-                document.getElementById('status').classList.add('connected');
                 updateUI();
                 
             } catch (error) {
-                console.error('Error:', error);
-                document.getElementById('status').textContent = '❌ ' + error.message;
-                document.getElementById('status').classList.add('error');
+                throw error;
             }
         }
 
         // ============================================
-        // TIEMPO REAL
+        // CONFIGURAR TIEMPO REAL
         // ============================================
-        const channel = supabase
-            .channel('cronometros-control')
-            .on(
-                'postgres_changes',
-                { event: '*', schema: 'public', table: 'cronometros' },
-                (payload) => {
-                    console.log('Cambio recibido:', payload);
-                    const grupo = payload.new.grupo;
-                    timers[grupo] = {
-                        running: payload.new.running,
-                        startTime: payload.new.start_time,
-                        elapsed: payload.new.elapsed
-                    };
-                    updateUI();
-                }
-            )
-            .subscribe((status) => {
-                console.log('Estado de suscripción:', status);
-            });
+        async function setupRealtime() {
+            const channel = supabase
+                .channel('cronometros-control')
+                .on(
+                    'postgres_changes',
+                    { 
+                        event: '*', 
+                        schema: 'public', 
+                        table: 'cronometros' 
+                    },
+                    (payload) => {
+                        console.log('📡 Cambio recibido:', payload);
+                        const grupo = payload.new.grupo;
+                        timers[grupo] = {
+                            running: payload.new.running,
+                            startTime: payload.new.start_time,
+                            elapsed: payload.new.elapsed
+                        };
+                        updateUI();
+                    }
+                )
+                .subscribe((status, err) => {
+                    console.log('Estado de suscripción:', status);
+                    if (err) {
+                        console.error('Error de suscripción:', err);
+                    }
+                });
+        }
 
         // ============================================
         // ACTUALIZAR UI
@@ -448,35 +566,42 @@
         });
 
         document.getElementById('btnStart').addEventListener('click', async () => {
+            if (!isConnected) return;
+            
             const timer = timers[selectedGroup];
             const newRunning = !timer.running;
             
             try {
+                const updateData = {
+                    running: newRunning,
+                    start_time: newRunning ? Date.now() : timer.startTime,
+                    elapsed: newRunning ? timer.elapsed : 
+                        (timer.elapsed + (Date.now() - timer.startTime))
+                };
+                
+                console.log('Actualizando grupo', selectedGroup, updateData);
+                
                 const { error } = await supabase
                     .from('cronometros')
-                    .update({
-                        running: newRunning,
-                        start_time: newRunning ? Date.now() : timer.startTime,
-                        elapsed: newRunning ? timer.elapsed : 
-                            (timer.elapsed + (Date.now() - timer.startTime))
-                    })
+                    .update(updateData)
                     .eq('grupo', selectedGroup);
                 
                 if (error) throw error;
+                
             } catch (error) {
                 console.error('Error:', error);
                 alert('Error al actualizar: ' + error.message);
             }
         });
 
-        // ============================================
         // RESET (3 segundos)
-        // ============================================
         const btnReset = document.getElementById('btnReset');
         const progressBar = document.getElementById('progressBar');
         const resetProgressDiv = document.getElementById('resetProgress');
 
         function startReset() {
+            if (!isConnected) return;
+            
             resetProgressDiv.style.display = 'block';
             let progress = 0;
             
@@ -516,14 +641,14 @@
         btnReset.addEventListener('touchend', cancelReset);
         btnReset.addEventListener('mouseleave', cancelReset);
 
-        // ============================================
         // RESET ALL (5 segundos)
-        // ============================================
         const btnResetAll = document.getElementById('btnResetAll');
         const progressBarAll = document.getElementById('progressBarAll');
         const resetAllProgressDiv = document.getElementById('resetAllProgress');
 
         function startResetAll() {
+            if (!isConnected) return;
+            
             resetAllProgressDiv.style.display = 'block';
             let progress = 0;
             
@@ -567,10 +692,27 @@
         btnResetAll.addEventListener('touchend', cancelResetAll);
         btnResetAll.addEventListener('mouseleave', cancelResetAll);
 
+        // DEBUG
+        document.getElementById('debugBtn').addEventListener('click', async () => {
+            console.log('=== DEBUG INFO ===');
+            console.log('URL:', SUPABASE_URL);
+            console.log('Connected:', isConnected);
+            console.log('Timers:', timers);
+            
+            try {
+                const { data, error } = await supabase.from('cronometros').select('*');
+                console.log('Datos en DB:', data);
+                if (error) console.error('Error:', error);
+                alert('Revisa la consola del navegador (F12)');
+            } catch (err) {
+                console.error('Error en debug:', err);
+            }
+        });
+
         // ============================================
         // INICIALIZAR
         // ============================================
-        loadInitialData();
+        initSupabase();
     </script>
 </body>
 </html>
