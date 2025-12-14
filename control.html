@@ -1,197 +1,493 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-<meta charset="UTF-8">
-<title>Panel de Control</title>
-
-<style>
-    body {
-        margin: 0;
-        background: #f3f3f3;
-        font-family: Arial, sans-serif;
-        padding: 20px;
-    }
-    h1 {
-        text-align: center;
-        margin-bottom: 10px;
-    }
-    #clock {
-        text-align: right;
-        font-size: 24px;
-        margin-bottom: 20px;
-        font-weight: bold;
-    }
-    .panel {
-        max-width: 400px;
-        margin: auto;
-        background: white;
-        padding: 25px;
-        border-radius: 15px;
-        box-shadow: 0 0 10px #bbb;
-    }
-    select {
-        width: 100%;
-        padding: 10px;
-        font-size: 20px;
-        margin-bottom: 20px;
-    }
-    button {
-        width: 45%;
-        padding: 15px;
-        font-size: 20px;
-        border: none;
-        border-radius: 10px;
-        cursor: pointer;
-        color: white;
-    }
-    #play { background: #28a745; }
-    #reset { background: #dc3545; }
-    .btns {
-        display: flex;
-        justify-content: space-between;
-    }
-</style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Control - Cronómetros</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            background: #000;
+            color: #fff;
+            font-family: Arial, sans-serif;
+            padding: 20px;
+            padding-bottom: 100px;
+        }
+        
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+        }
+        
+        .back-btn {
+            display: inline-block;
+            background: #111;
+            color: #ff8c00;
+            padding: 10px 20px;
+            border-radius: 8px;
+            border: 2px solid #ff8c00;
+            text-decoration: none;
+            font-size: 14px;
+            font-weight: bold;
+            margin-bottom: 20px;
+            transition: all 0.3s;
+        }
+        
+        .back-btn:hover {
+            background: #ff8c00;
+            color: #000;
+        }
+        
+        .status {
+            text-align: center;
+            padding: 15px;
+            background: #111;
+            border: 2px solid #ff8c00;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+        
+        .status.connected {
+            border-color: #00ff00;
+            color: #00ff00;
+        }
+        
+        .status.error {
+            border-color: #ff0000;
+            color: #ff0000;
+        }
+        
+        .current-timer {
+            background: #111;
+            border: 4px solid #ff8c00;
+            border-radius: 12px;
+            padding: 30px;
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        
+        .current-label {
+            font-size: 24px;
+            color: #ff8c00;
+            margin-bottom: 10px;
+            text-transform: uppercase;
+            font-weight: bold;
+        }
+        
+        .current-time {
+            font-size: 72px;
+            font-weight: bold;
+            color: #fff;
+            margin-bottom: 10px;
+        }
+        
+        .current-status {
+            font-size: 18px;
+            color: #999;
+        }
+        
+        .current-status.running {
+            color: #00ff00;
+        }
+        
+        select {
+            width: 100%;
+            padding: 15px;
+            font-size: 20px;
+            background: #111;
+            color: #fff;
+            border: 3px solid #ff8c00;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            cursor: pointer;
+        }
+        
+        .buttons {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+        
+        button {
+            padding: 25px;
+            font-size: 24px;
+            font-weight: bold;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        button:active {
+            transform: scale(0.95);
+        }
+        
+        .btn-start {
+            background: #ff8c00;
+            color: #000;
+        }
+        
+        .btn-start:hover {
+            background: #cc7000;
+        }
+        
+        .btn-start.paused {
+            background: #00ff00;
+        }
+        
+        .btn-reset {
+            background: #fff;
+            color: #000;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .btn-reset:hover {
+            background: #ccc;
+        }
+        
+        .btn-reset-all {
+            width: 100%;
+            padding: 20px;
+            background: #dc3545;
+            color: #fff;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .btn-reset-all:hover {
+            background: #c82333;
+        }
+        
+        .progress-bar {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            height: 5px;
+            background: #ff8c00;
+            width: 0%;
+            transition: width 0.1s linear;
+        }
+        
+        .progress-text {
+            text-align: center;
+            color: #ff8c00;
+            margin: 10px 0;
+            font-size: 14px;
+            font-weight: bold;
+        }
+        
+        .grid-preview {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 8px;
+            margin-top: 20px;
+        }
+        
+        .mini-timer {
+            background: #111;
+            border: 2px solid #333;
+            border-radius: 6px;
+            padding: 8px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        
+        .mini-timer:hover {
+            border-color: #ff8c00;
+        }
+        
+        .mini-timer.selected {
+            border-color: #ff8c00;
+            background: #1a1a1a;
+        }
+        
+        .mini-timer.running {
+            border-color: #00ff00;
+            box-shadow: 0 0 10px rgba(0, 255, 0, 0.3);
+        }
+        
+        .mini-label {
+            font-size: 10px;
+            color: #999;
+            margin-bottom: 3px;
+            text-transform: uppercase;
+        }
+        
+        .mini-time {
+            font-size: 14px;
+            font-weight: bold;
+        }
+        
+        .section-title {
+            color: #ff8c00;
+            font-size: 18px;
+            font-weight: bold;
+            margin: 20px 0 10px;
+            text-transform: uppercase;
+        }
+    </style>
 </head>
-
 <body>
-
-<h1>Control de Cronómetros</h1>
-
-<div id="clock">00:00:00</div>
-
-<div class="panel">
-    <label>Selecciona un grupo:</label>
-    <select id="grupo">
-        <script>
-            for (let i = 1; i <= 20; i++) {
-                document.write(`<option value="${i}">Grupo ${i}</option>`);
-            }
-        </script>
-    </select>
-
-    <div class="btns">
-        <button id="play">▶ Iniciar</button>
-        <button id="reset">⟳ Reset</button>
+    <div class="container">
+        <a href="index.html" class="back-btn">← VOLVER AL MENÚ</a>
+        
+        <div class="status" id="status">⚠️ Conectando...</div>
+        
+        <div class="current-timer">
+            <div class="current-label" id="currentLabel">Hit 1</div>
+            <div class="current-time" id="currentTime">00:00</div>
+            <div class="current-status" id="currentStatus">⏸ DETENIDO</div>
+        </div>
+        
+        <select id="groupSelect"></select>
+        
+        <div class="buttons">
+            <button class="btn-start" id="btnStart">▶ INICIAR</button>
+            <button class="btn-reset" id="btnReset">
+                🔄 RESET
+                <div class="progress-bar" id="progressBar"></div>
+            </button>
+        </div>
+        
+        <div id="resetProgress" style="display:none;">
+            <div class="progress-text">Mantenga presionado 3 segundos...</div>
+        </div>
+        
+        <button class="btn-reset-all" id="btnResetAll">
+            🔄 RESETEAR TODOS
+            <div class="progress-bar" id="progressBarAll"></div>
+        </button>
+        
+        <div id="resetAllProgress" style="display:none;">
+            <div class="progress-text">Mantenga presionado 5 segundos...</div>
+        </div>
+        
+        <div class="section-title">Estado de todos los Hits:</div>
+        <div class="grid-preview" id="gridPreview"></div>
     </div>
-</div>
 
-<!-- Reloj local -->
-<script>
-function updateClock() {
-    const now = new Date();
-    document.getElementById("clock").innerText = now.toLocaleTimeString();
-}
-setInterval(updateClock, 1000);
-updateClock();
-</script>
+    <script type="module">
+        import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm';
 
-<!-- Firebase -->
-<script type="module">
-import { initializeApp } 
-  from "https://www.gstatic.com/firebasejs/12.6.0/firebase-app.js";
-import { getFirestore, doc, setDoc }
-  from "https://www.gstatic.com/firebasejs/12.6.0/firebase-firestore.js";
+        // ============================================
+        // CONFIGURACIÓN SUPABASE
+        // ============================================
+        const SUPABASE_URL = 'https://diuamkiidwpctdrqdzcd.supabase.co';
+        const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRpdWFta2lpZHdwY3RkcnFkemNkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjU2ODc4MDMsImV4cCI6MjA4MTI2MzgwM30.rQ2kU9zfxJ-mLQac63oi4TrPTg7e1-BZifaECVAdFyw';
 
-const firebaseConfig = {
-  apiKey: "AIzaSyAJqYhseyN-s6s79WxFlljQlKNSkMRkptE",
-  authDomain: "cronometros-grupos.firebaseapp.com",
-  projectId: "cronometros-grupos",
-  storageBucket: "cronometros-grupos.firebasestorage.app",
-  messagingSenderId: "886340826784",
-  appId: "1:886340826784:web:63897dd9170825bc15fbc5",
-  measurementId: "G-KD241WKQZ2"
-};
+        const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
 
-const app = initializeApp(firebaseConfig);
-const db = getFirestore(app);
+        // ============================================
+        // VARIABLES GLOBALES
+        // ============================================
+        let selectedGroup = 1;
+        const timers = {};
+        let resetTimeout = null;
+        let resetAllTimeout = null;
+        let resetInterval = null;
+        let resetAllInterval = null;
 
-const btnPlay = document.getElementById("play");
-const btnReset = document.getElementById("reset");
-const select = document.getElementById("grupo");
+        // ============================================
+        // FORMATO MM:SS
+        // ============================================
+        function formatTime(ms) {
+            let totalSeconds = Math.floor(ms / 1000);
+            let minutes = Math.floor(totalSeconds / 60);
+            let seconds = totalSeconds % 60;
+            if (minutes > 99) minutes = 99;
+            return `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
+        }
 
-/* ======================
-   START (INICIAR)
-   ====================== */
-btnPlay.addEventListener("click", async () => {
-    const id = "grupo" + select.value;
-    const ref = doc(db, "cronometros", id);
+        // ============================================
+        // CREAR UI
+        // ============================================
+        const groupSelect = document.getElementById('groupSelect');
+        const gridPreview = document.getElementById('gridPreview');
 
-    try {
-        await setDoc(ref, {
-            running: true,
-            startTime: Date.now()
-        }, { merge: true });
-
-        console.log("START enviado a", id);
-
-        btnPlay.textContent = "▶️ Iniciado";
-        setTimeout(() => btnPlay.textContent = "▶ Iniciar", 800);
-
-    } catch (e) {
-        console.error("Error START:", e);
-        alert("No se pudo iniciar el cronómetro");
-    }
-});
-
-/* ======================
-   RESET (CORTO / LARGO)
-   ====================== */
-let pressTimer = null;
-
-// RESET LARGO (3 segundos)
-btnReset.addEventListener("mousedown", () => {
-    pressTimer = setTimeout(async () => {
-        const id = "grupo" + select.value;
-        const ref = doc(db, "cronometros", id);
-
-        try {
-            await setDoc(ref, {
+        for (let i = 1; i <= 20; i++) {
+            // Selector
+            const option = document.createElement('option');
+            option.value = i;
+            option.textContent = `Hit ${i}`;
+            groupSelect.appendChild(option);
+            
+            // Preview
+            const mini = document.createElement('div');
+            mini.className = 'mini-timer';
+            mini.id = `mini${i}`;
+            mini.onclick = () => {
+                selectedGroup = i;
+                groupSelect.value = i;
+                updateUI();
+            };
+            mini.innerHTML = `
+                <div class="mini-label">Hit ${i}</div>
+                <div class="mini-time" id="miniTime${i}">00:00</div>
+            `;
+            gridPreview.appendChild(mini);
+            
+            timers[i] = {
                 running: false,
-                elapsed: 0,
-                startTime: 0
-            }, { merge: true });
-
-            console.log("RESET TOTAL", id);
-            alert("Reset total aplicado a " + id);
-
-        } catch (e) {
-            console.error("Error reset largo:", e);
+                startTime: 0,
+                elapsed: 0
+            };
         }
-    }, 3000);
-});
 
-// RESET CORTO (soltar)
-btnReset.addEventListener("mouseup", async () => {
-    if (pressTimer) {
-        clearTimeout(pressTimer);
-        pressTimer = null;
-
-        const id = "grupo" + select.value;
-        const ref = doc(db, "cronometros", id);
-
-        try {
-            await setDoc(ref, {
-                running: false
-            }, { merge: true });
-
-            console.log("RESET CORTO", id);
-
-        } catch (e) {
-            console.error("Error reset corto:", e);
+        // ============================================
+        // CARGAR DATOS INICIALES
+        // ============================================
+        async function loadInitialData() {
+            try {
+                const { data, error } = await supabase
+                    .from('cronometros')
+                    .select('*')
+                    .order('grupo');
+                
+                if (error) throw error;
+                
+                if (!data || data.length === 0) {
+                    throw new Error('No se encontraron datos en la tabla.');
+                }
+                
+                data.forEach(item => {
+                    timers[item.grupo] = {
+                        running: item.running,
+                        startTime: item.start_time,
+                        elapsed: item.elapsed
+                    };
+                });
+                
+                document.getElementById('status').textContent = '✅ Conectado';
+                document.getElementById('status').classList.add('connected');
+                updateUI();
+                
+            } catch (error) {
+                console.error('Error:', error);
+                document.getElementById('status').textContent = '❌ ' + error.message;
+                document.getElementById('status').classList.add('error');
+            }
         }
-    }
-});
 
-// Soporte táctil
-btnReset.addEventListener("touchstart", e => {
-    e.preventDefault();
-    btnReset.dispatchEvent(new Event("mousedown"));
-});
-btnReset.addEventListener("touchend", e => {
-    e.preventDefault();
-    btnReset.dispatchEvent(new Event("mouseup"));
-});
-</script>
+        // ============================================
+        // TIEMPO REAL
+        // ============================================
+        const channel = supabase
+            .channel('cronometros-control')
+            .on(
+                'postgres_changes',
+                { event: '*', schema: 'public', table: 'cronometros' },
+                (payload) => {
+                    console.log('Cambio recibido:', payload);
+                    const grupo = payload.new.grupo;
+                    timers[grupo] = {
+                        running: payload.new.running,
+                        startTime: payload.new.start_time,
+                        elapsed: payload.new.elapsed
+                    };
+                    updateUI();
+                }
+            )
+            .subscribe((status) => {
+                console.log('Estado de suscripción:', status);
+            });
 
-</body>
-</html>
+        // ============================================
+        // ACTUALIZAR UI
+        // ============================================
+        function updateUI() {
+            const now = Date.now();
+            
+            for (let i = 1; i <= 20; i++) {
+                let ms = timers[i].elapsed;
+                if (timers[i].running && timers[i].startTime) {
+                    ms += now - timers[i].startTime;
+                }
+                
+                document.getElementById('miniTime' + i).textContent = formatTime(ms);
+                
+                const miniDiv = document.getElementById('mini' + i);
+                miniDiv.classList.toggle('running', timers[i].running);
+                miniDiv.classList.toggle('selected', i === selectedGroup);
+            }
+            
+            // Actualizar display principal
+            const timer = timers[selectedGroup];
+            let ms = timer.elapsed;
+            if (timer.running && timer.startTime) {
+                ms += now - timer.startTime;
+            }
+            
+            document.getElementById('currentLabel').textContent = `Hit ${selectedGroup}`;
+            document.getElementById('currentTime').textContent = formatTime(ms);
+            
+            const statusEl = document.getElementById('currentStatus');
+            statusEl.textContent = timer.running ? '▶ CORRIENDO' : '⏸ DETENIDO';
+            statusEl.classList.toggle('running', timer.running);
+            
+            const btnStart = document.getElementById('btnStart');
+            btnStart.textContent = timer.running ? '⏸ PAUSAR' : '▶ INICIAR';
+            btnStart.classList.toggle('paused', timer.running);
+        }
+
+        setInterval(updateUI, 100);
+
+        // ============================================
+        // EVENTOS
+        // ============================================
+        groupSelect.addEventListener('change', (e) => {
+            selectedGroup = parseInt(e.target.value);
+            updateUI();
+        });
+
+        document.getElementById('btnStart').addEventListener('click', async () => {
+            const timer = timers[selectedGroup];
+            const newRunning = !timer.running;
+            
+            try {
+                const { error } = await supabase
+                    .from('cronometros')
+                    .update({
+                        running: newRunning,
+                        start_time: newRunning ? Date.now() : timer.startTime,
+                        elapsed: newRunning ? timer.elapsed : 
+                            (timer.elapsed + (Date.now() - timer.startTime))
+                    })
+                    .eq('grupo', selectedGroup);
+                
+                if (error) throw error;
+            } catch (error) {
+                console.error('Error:', error);
+                alert('Error al actualizar: ' + error.message);
+            }
+        });
+
+        // RESET (3 segundos)
+        const btnReset = document.getElementById('btnReset');
+        const progressBar = document.getElementById('progressBar');
+        const resetProgressDiv = document.getElementById('resetProgress');
+
+        function startReset() {
+            resetProgressDiv.style.display = 'block';
+            let progress = 0;
+            
+            resetInterval = setInterval(() => {
+                progress += 3.33;
+                progressBar.style.width = progress + '%';
+            }, 100);
+            
+            resetTimeout = setTimeout(async () => {
+                clearInterval(resetInterval);
+                try {
+                    await supabase
+                        .from('cronometros')
+                        .update({ running: false, start_time: 0, elapsed: 0 })
+                        .eq('grupo', selectedGroup);
+                } catch (error) {
