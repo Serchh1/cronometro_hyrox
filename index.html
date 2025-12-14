@@ -1,36 +1,156 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-<meta charset="UTF-8">
-<title>Sistema de Cronómetros</title>
-<style>
-    body {
-        background: #e6e6e6;
-        font-family: Arial;
-        text-align: center;
-        padding: 40px;
-    }
-    h1 { margin-bottom: 30px; }
-    a {
-        display: inline-block;
-        background: #333;
-        color: white;
-        padding: 20px 40px;
-        font-size: 24px;
-        border-radius: 10px;
-        text-decoration: none;
-        margin: 20px;
-        transition: 0.2s;
-    }
-    a:hover { background: #555; }
-</style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sistema de Cronómetros - Inicio</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            background: linear-gradient(135deg, #000 0%, #1a1a1a 100%);
+            color: #fff;
+            font-family: 'Arial', sans-serif;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+        
+        .container {
+            text-align: center;
+            max-width: 800px;
+            width: 100%;
+        }
+        
+        h1 {
+            font-size: clamp(32px, 5vw, 64px);
+            color: #ff8c00;
+            margin-bottom: 20px;
+            text-shadow: 0 0 20px rgba(255, 140, 0, 0.5);
+        }
+        
+        .subtitle {
+            font-size: clamp(16px, 2.5vw, 24px);
+            color: #ccc;
+            margin-bottom: 60px;
+        }
+        
+        .options {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 30px;
+            margin-bottom: 40px;
+        }
+        
+        .option-card {
+            background: #111;
+            border: 4px solid #ff8c00;
+            border-radius: 20px;
+            padding: 40px 20px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            color: #fff;
+            display: block;
+        }
+        
+        .option-card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 10px 40px rgba(255, 140, 0, 0.4);
+            border-color: #fff;
+        }
+        
+        .option-card:active {
+            transform: translateY(-5px);
+        }
+        
+        .option-icon {
+            font-size: 72px;
+            margin-bottom: 20px;
+        }
+        
+        .option-title {
+            font-size: 28px;
+            font-weight: bold;
+            color: #ff8c00;
+            margin-bottom: 10px;
+        }
+        
+        .option-description {
+            font-size: 16px;
+            color: #999;
+            line-height: 1.5;
+        }
+        
+        .status {
+            background: #111;
+            border: 2px solid #333;
+            border-radius: 12px;
+            padding: 20px;
+            margin-top: 40px;
+        }
+        
+        .status-title {
+            color: #ff8c00;
+            font-size: 18px;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+        
+        .status-text {
+            color: #ccc;
+            font-size: 14px;
+        }
+        
+        @media (max-width: 600px) {
+            .options {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
 </head>
 <body>
-
-<h1>Sistema de Cronómetros</h1>
-
-<a href="display.html">Ver Display</a>
-<a href="control.html">Panel de Control</a>
-
+    <div class="container">
+        <h1>🏁 SISTEMA DE CRONÓMETROS</h1>
+        <div class="subtitle">Seleccione el modo que desea visualizar</div>
+        
+        <div class="options">
+            <a href="display.html" class="option-card">
+                <div class="option-icon">📺</div>
+                <div class="option-title">DISPLAY</div>
+                <div class="option-description">
+                    Pantalla para proyectar<br>
+                    Muestra los 20 cronómetros<br>
+                    Ideal para conectar a proyector
+                </div>
+            </a>
+            
+            <a href="control.html" class="option-card">
+                <div class="option-icon">🎮</div>
+                <div class="option-title">CONTROL</div>
+                <div class="option-description">
+                    Panel de control<br>
+                    Iniciar/Pausar/Resetear<br>
+                    Usar desde tablet o celular
+                </div>
+            </a>
+        </div>
+        
+        <div class="status">
+            <div class="status-title">💡 Instrucciones:</div>
+            <div class="status-text">
+                1. Abre el <strong>DISPLAY</strong> en el dispositivo conectado al proyector<br>
+                2. Abre el <strong>CONTROL</strong> en tu tablet/celular<br>
+                3. Ambas pantallas se sincronizarán automáticamente<br>
+                4. ¡Listo para usar!
+            </div>
+        </div>
+    </div>
 </body>
 </html>
