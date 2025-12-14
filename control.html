@@ -469,7 +469,9 @@
             }
         });
 
+        // ============================================
         // RESET (3 segundos)
+        // ============================================
         const btnReset = document.getElementById('btnReset');
         const progressBar = document.getElementById('progressBar');
         const resetProgressDiv = document.getElementById('resetProgress');
@@ -491,3 +493,84 @@
                         .update({ running: false, start_time: 0, elapsed: 0 })
                         .eq('grupo', selectedGroup);
                 } catch (error) {
+                    console.error('Error:', error);
+                    alert('Error al resetear: ' + error.message);
+                }
+                resetProgressDiv.style.display = 'none';
+                progressBar.style.width = '0%';
+            }, 3000);
+        }
+
+        function cancelReset() {
+            if (resetTimeout) {
+                clearTimeout(resetTimeout);
+                clearInterval(resetInterval);
+                resetProgressDiv.style.display = 'none';
+                progressBar.style.width = '0%';
+            }
+        }
+
+        btnReset.addEventListener('mousedown', startReset);
+        btnReset.addEventListener('touchstart', startReset);
+        btnReset.addEventListener('mouseup', cancelReset);
+        btnReset.addEventListener('touchend', cancelReset);
+        btnReset.addEventListener('mouseleave', cancelReset);
+
+        // ============================================
+        // RESET ALL (5 segundos)
+        // ============================================
+        const btnResetAll = document.getElementById('btnResetAll');
+        const progressBarAll = document.getElementById('progressBarAll');
+        const resetAllProgressDiv = document.getElementById('resetAllProgress');
+
+        function startResetAll() {
+            resetAllProgressDiv.style.display = 'block';
+            let progress = 0;
+            
+            resetAllInterval = setInterval(() => {
+                progress += 2;
+                progressBarAll.style.width = progress + '%';
+            }, 100);
+            
+            resetAllTimeout = setTimeout(async () => {
+                clearInterval(resetAllInterval);
+                
+                try {
+                    for (let i = 1; i <= 20; i++) {
+                        await supabase
+                            .from('cronometros')
+                            .update({ running: false, start_time: 0, elapsed: 0 })
+                            .eq('grupo', i);
+                    }
+                } catch (error) {
+                    console.error('Error:', error);
+                    alert('Error al resetear todos: ' + error.message);
+                }
+                
+                resetAllProgressDiv.style.display = 'none';
+                progressBarAll.style.width = '0%';
+            }, 5000);
+        }
+
+        function cancelResetAll() {
+            if (resetAllTimeout) {
+                clearTimeout(resetAllTimeout);
+                clearInterval(resetAllInterval);
+                resetAllProgressDiv.style.display = 'none';
+                progressBarAll.style.width = '0%';
+            }
+        }
+
+        btnResetAll.addEventListener('mousedown', startResetAll);
+        btnResetAll.addEventListener('touchstart', startResetAll);
+        btnResetAll.addEventListener('mouseup', cancelResetAll);
+        btnResetAll.addEventListener('touchend', cancelResetAll);
+        btnResetAll.addEventListener('mouseleave', cancelResetAll);
+
+        // ============================================
+        // INICIALIZAR
+        // ============================================
+        loadInitialData();
+    </script>
+</body>
+</html>
