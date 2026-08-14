@@ -1,266 +1,263 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Display - Cronómetros</title>
-    <style>
-        html, body {
-            margin: 0;
-            padding: 0;
-            background: #000;
-            color: #fff;
-            font-family: Arial, sans-serif;
-            width: 100%;
-            height: 100%;
-            overflow: hidden;
-        }
-        
-        .grid {
-            display: grid;
-            grid-template-columns: repeat(5, 1fr);
-            grid-template-rows: repeat(4, 1fr);
-            gap: 10px;
-            width: 100vw;
-            height: 100vh;
-            padding: 10px;
-            box-sizing: border-box;
-        }
-        
-        .timer {
-            background: #111;
-            border: 3px solid #ff8c00;
-            border-radius: 12px;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            transition: all 0.3s ease;
-        }
-        
-        .timer.running {
-            border-color: #00ff00;
-            box-shadow: 0 0 20px rgba(0, 255, 0, 0.3);
-        }
-        
-        .label {
-            font-size: clamp(14px, 1.8vw, 22px);
-            color: #ff8c00;
-            margin-bottom: 5px;
-            font-weight: bold;
-            text-transform: uppercase;
-        }
-        
-        .timer.running .label {
-            color: #00ff00;
-        }
-        
-        .time {
-            font-size: clamp(32px, 6vw, 80px);
-            font-weight: bold;
-            letter-spacing: 2px;
-            color: #fff;
-        }
-        
-        .status {
-            position: fixed;
-            top: 10px;
-            right: 10px;
-            background: #111;
-            padding: 10px 20px;
-            border-radius: 8px;
-            border: 2px solid #ff8c00;
-            font-size: 14px;
-            z-index: 1000;
-        }
-        
-        .status.connected {
-            border-color: #00ff00;
-            color: #00ff00;
-        }
-        
-        .status.error {
-            border-color: #ff0000;
-            color: #ff0000;
-        }
-        
-        .back-btn {
-            position: fixed;
-            top: 10px;
-            left: 10px;
-            background: #111;
-            color: #ff8c00;
-            padding: 10px 20px;
-            border-radius: 8px;
-            border: 2px solid #ff8c00;
-            text-decoration: none;
-            font-size: 14px;
-            font-weight: bold;
-            z-index: 1000;
-            transition: all 0.3s;
-        }
-        
-        .back-btn:hover {
-            background: #ff8c00;
-            color: #000;
-        }
-    </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Display · Cronómetros HYROX</title>
+<link rel="stylesheet" href="assets/styles.css">
+<style>
+  html, body {
+    overflow: hidden;
+    background: var(--bg);
+  }
+
+  .top-bar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 64px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 28px;
+    z-index: 10;
+    background: linear-gradient(to bottom, rgba(7,8,10,0.9), transparent);
+  }
+
+  .event-brand {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 18px;
+    font-weight: 800;
+    letter-spacing: 0.04em;
+    color: var(--text-dim);
+  }
+
+  .event-brand .icon {
+    width: 22px;
+    height: 22px;
+    color: var(--accent);
+  }
+
+  .top-bar .status-pill {
+    font-size: 14px;
+    padding: 8px 16px;
+  }
+
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    grid-template-rows: repeat(4, 1fr);
+    gap: 10px;
+    width: 100vw;
+    height: 100vh;
+    padding: 74px 10px 10px;
+    box-sizing: border-box;
+  }
+
+  .timer {
+    background: var(--surface);
+    border: 2px solid var(--border);
+    border-radius: 16px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    position: relative;
+    transition: border-color 0.3s var(--ease-out), background 0.3s var(--ease-out);
+  }
+
+  .timer.running {
+    border-color: rgba(47, 214, 110, 0.55);
+    background: linear-gradient(180deg, rgba(47,214,110,0.06), var(--surface) 55%);
+  }
+
+  .timer.maxed {
+    border-color: rgba(245, 185, 64, 0.55);
+  }
+
+  .run-indicator {
+    position: absolute;
+    top: 12px;
+    right: 12px;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    color: var(--text-faint);
+    font-size: clamp(9px, 0.9vw, 12px);
+    font-weight: 700;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+  }
+
+  .run-indicator .icon {
+    width: 12px;
+    height: 12px;
+  }
+
+  .timer.running .run-indicator {
+    color: var(--success);
+  }
+
+  .label {
+    font-size: clamp(13px, 1.6vw, 20px);
+    color: var(--text-dim);
+    margin-bottom: 6px;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+  }
+
+  .timer.running .label {
+    color: var(--success);
+  }
+
+  .time {
+    font-size: clamp(30px, 5.6vw, 76px);
+    font-weight: 700;
+    color: var(--text);
+    line-height: 1;
+  }
+
+  .timer.maxed .time {
+    color: var(--warning);
+  }
+</style>
 </head>
 <body>
-    <a href="index.html" class="back-btn">← VOLVER</a>
-    <div class="status" id="status">⚠️ Conectando...</div>
-    <div class="grid" id="grid"></div>
+  <div class="top-bar">
+    <div class="event-brand">
+      <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="13" r="8"/><path d="M12 9v4l2.5 2.5"/><path d="M9 3h6"/><path d="M17 4.5l1.5 1.5"/></svg>
+      HYROX · Salidas
+    </div>
+    <div class="status-pill connecting" id="status">
+      <span class="dot"></span>
+      <span id="statusText">Conectando</span>
+    </div>
+  </div>
+  <div class="grid" id="grid"></div>
 
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.39.3/dist/umd/supabase.min.js"></script>
-    <script>
-        // ============================================
-        // CONFIGURACIÓN SUPABASE
-        // ============================================
-        const SUPABASE_URL = 'https://diuamkiidwpctdrqdzcd.supabase.co';
-        const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRpdWFta2lpZHdwY3RkcnFkemNkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjU2ODc4MDMsImV4cCI6MjA4MTI2MzgwM30.rQ2kU9zfxJ-mLQac63oi4TrPTg7e1-BZifaECVAdFyw';
+  <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-database-compat.js"></script>
+  <script src="assets/firebase-config.js"></script>
+  <script>
+    // ============================================
+    // CONFIGURACIÓN FIREBASE
+    // Credenciales reales en assets/firebase-config.js
+    // ============================================
+    firebase.initializeApp(FIREBASE_CONFIG);
+    const db = firebase.database();
+    const cronometrosRef = db.ref('cronometros');
 
-        const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+    const MAX_MS = 99 * 60 * 1000 + 59 * 1000;
 
-        // ============================================
-        // CREAR UI (20 HITS)
-        // ============================================
-        const grid = document.getElementById('grid');
-        const timers = {};
+    // ============================================
+    // CREAR UI (20 HITS)
+    // ============================================
+    const grid = document.getElementById('grid');
+    const timers = {};
+
+    const ICON_RUNNING = '<svg class="icon" viewBox="0 0 24 24" fill="currentColor" stroke="none"><path d="M8 5v14l11-7z"/></svg>';
+    const ICON_STOPPED = '<svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="6" y="6" width="12" height="12" rx="1"/></svg>';
+
+    for (let i = 1; i <= 20; i++) {
+      const div = document.createElement('div');
+      div.className = 'timer';
+      div.id = `timer${i}`;
+      div.innerHTML = `
+        <div class="run-indicator" id="indicator${i}">${ICON_STOPPED}<span id="indicatorText${i}">Listo</span></div>
+        <div class="label">Hit ${i}</div>
+        <div class="time mono" id="time${i}">00:00</div>
+      `;
+      grid.appendChild(div);
+
+      timers[i] = { running: false, startTime: 0, elapsed: 0 };
+    }
+
+    // ============================================
+    // FORMATO MM:SS (con tope en 99:59)
+    // ============================================
+    function formatTime(ms) {
+      if (ms > MAX_MS) ms = MAX_MS;
+      let totalSeconds = Math.floor(ms / 1000);
+      let minutes = Math.floor(totalSeconds / 60);
+      let seconds = totalSeconds % 60;
+      return `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
+    }
+
+    function setRunningVisual(i, running) {
+      const timerDiv = document.getElementById(`timer${i}`);
+      timerDiv.classList.toggle('running', running);
+      document.getElementById(`indicator${i}`).innerHTML = running
+        ? `${ICON_RUNNING}<span>En curso</span>`
+        : `${ICON_STOPPED}<span>Listo</span>`;
+    }
+
+    // ============================================
+    // CARGAR DATOS INICIALES
+    // ============================================
+    async function loadInitialData() {
+      const statusEl = document.getElementById('status');
+      const statusText = document.getElementById('statusText');
+      try {
+        const snapshot = await cronometrosRef.get();
+        const data = snapshot.val();
+        if (!data) throw new Error('No se encontraron datos');
 
         for (let i = 1; i <= 20; i++) {
-            const div = document.createElement('div');
-            div.className = 'timer';
-            div.id = `timer${i}`;
-            div.innerHTML = `
-                <div class="label">Hit ${i}</div>
-                <div class="time" id="time${i}">00:00</div>
-            `;
-            grid.appendChild(div);
-            
-            timers[i] = {
-                running: false,
-                startTime: 0,
-                elapsed: 0
-            };
+          const item = data[i];
+          if (!item) continue;
+          timers[i] = { running: item.running || false, startTime: item.start_time || 0, elapsed: item.elapsed || 0 };
+          setRunningVisual(i, item.running);
         }
 
-        // ============================================
-        // FORMATO MM:SS
-        // ============================================
-        function formatTime(ms) {
-            let totalSeconds = Math.floor(ms / 1000);
-            let minutes = Math.floor(totalSeconds / 60);
-            let seconds = totalSeconds % 60;
-            if (minutes > 99) minutes = 99;
-            if (seconds > 99) seconds = 99;
-            return `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
-        }
+        statusEl.className = 'status-pill connected';
+        statusText.textContent = 'Conectado';
+      } catch (error) {
+        console.error('Error cargando datos:', error);
+        statusEl.className = 'status-pill error';
+        statusText.textContent = error.message;
+      }
+    }
 
-        // ============================================
-        // CARGAR DATOS INICIALES
-        // ============================================
-        async function loadInitialData() {
-            try {
-                console.log('Cargando datos iniciales...');
-                const { data, error } = await supabase
-                    .from('cronometros')
-                    .select('*')
-                    .order('grupo');
-                
-                if (error) {
-                    console.error('Error:', error);
-                    throw error;
-                }
-                
-                console.log('Datos recibidos:', data);
-                
-                if (!data || data.length === 0) {
-                    throw new Error('No se encontraron datos. Verifica la tabla en Supabase.');
-                }
-                
-                data.forEach(item => {
-                    timers[item.grupo] = {
-                        running: item.running,
-                        startTime: item.start_time,
-                        elapsed: item.elapsed
-                    };
-                    
-                    // Actualizar estado visual
-                    const timerDiv = document.getElementById(`timer${item.grupo}`);
-                    if (item.running) {
-                        timerDiv.classList.add('running');
-                    }
-                });
-                
-                document.getElementById('status').textContent = '✅ Conectado';
-                document.getElementById('status').classList.add('connected');
-                
-            } catch (error) {
-                console.error('Error cargando datos:', error);
-                document.getElementById('status').textContent = '❌ Error: ' + error.message;
-                document.getElementById('status').classList.add('error');
-            }
-        }
+    // ============================================
+    // SUSCRIPCIÓN EN TIEMPO REAL
+    // ============================================
+    cronometrosRef.on('value', (snapshot) => {
+      const data = snapshot.val();
+      if (!data) return;
+      for (let i = 1; i <= 20; i++) {
+        const item = data[i];
+        if (!item) continue;
+        timers[i] = { running: item.running || false, startTime: item.start_time || 0, elapsed: item.elapsed || 0 };
+        setRunningVisual(i, item.running);
+      }
+    });
 
-        // ============================================
-        // SUSCRIPCIÓN EN TIEMPO REAL
-        // ============================================
-        const channel = supabase
-            .channel('cronometros-display')
-            .on(
-                'postgres_changes',
-                { 
-                    event: '*', 
-                    schema: 'public', 
-                    table: 'cronometros' 
-                },
-                (payload) => {
-                    console.log('Cambio recibido:', payload);
-                    const grupo = payload.new.grupo;
-                    timers[grupo] = {
-                        running: payload.new.running,
-                        startTime: payload.new.start_time,
-                        elapsed: payload.new.elapsed
-                    };
-                    
-                    // Actualizar indicador visual
-                    const timerDiv = document.getElementById(`timer${grupo}`);
-                    if (payload.new.running) {
-                        timerDiv.classList.add('running');
-                    } else {
-                        timerDiv.classList.remove('running');
-                    }
-                }
-            )
-            .subscribe((status) => {
-                console.log('Estado de suscripción:', status);
-            });
+    // ============================================
+    // LOOP DE ACTUALIZACIÓN DE UI
+    // ============================================
+    setInterval(() => {
+      const now = Date.now();
 
-        // ============================================
-        // LOOP DE ACTUALIZACIÓN DE UI
-        // ============================================
-        setInterval(() => {
-            const now = Date.now();
-            
-            for (let i = 1; i <= 20; i++) {
-                let ms = timers[i].elapsed;
-                
-                if (timers[i].running && timers[i].startTime) {
-                    ms += now - timers[i].startTime;
-                }
-                
-                if (ms > 99 * 60 * 1000 + 99 * 1000) {
-                    ms = 99 * 60 * 1000 + 99 * 1000;
-                }
-                
-                document.getElementById('time' + i).innerText = formatTime(ms);
-            }
-        }, 100);
+      for (let i = 1; i <= 20; i++) {
+        let ms = timers[i].elapsed;
+        if (timers[i].running && timers[i].startTime) ms += now - timers[i].startTime;
 
-        // ============================================
-        // INICIALIZAR
-        // ============================================
-        loadInitialData();
-    </script>
+        const maxed = ms >= MAX_MS;
+        if (maxed) ms = MAX_MS;
+
+        document.getElementById('timer' + i).classList.toggle('maxed', maxed);
+        document.getElementById('time' + i).textContent = formatTime(ms);
+      }
+    }, 200);
+
+    // ============================================
+    // INICIALIZAR
+    // ============================================
+    loadInitialData();
+  </script>
 </body>
 </html>

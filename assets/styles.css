@@ -1,0 +1,187 @@
+/* ==========================================================================
+   HYROX Cronómetros — Sistema de diseño compartido
+   ========================================================================== */
+
+@font-face {
+  font-family: 'Inter';
+  font-style: normal;
+  font-weight: 400 800;
+  font-display: swap;
+  src: local('Inter');
+}
+
+:root {
+  /* Superficies */
+  --bg: #07080a;
+  --surface: #131519;
+  --surface-2: #1c1f26;
+  --surface-3: #262a33;
+  --border: #2a2e37;
+  --border-strong: #3a3f4b;
+
+  /* Texto */
+  --text: #f4f5f7;
+  --text-dim: #9aa0ab;
+  --text-faint: #5c6270;
+
+  /* Acento (marca HYROX) */
+  --accent: #ff5a1f;
+  --accent-strong: #ff7a45;
+  --accent-dim: rgba(255, 90, 31, 0.14);
+  --accent-border: rgba(255, 90, 31, 0.45);
+
+  /* Semánticos */
+  --success: #2fd66e;
+  --success-dim: rgba(47, 214, 110, 0.14);
+  --danger: #ef4444;
+  --danger-dim: rgba(239, 68, 68, 0.14);
+  --warning: #f5b940;
+
+  /* Tipografía */
+  --font-ui: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+  --font-mono: 'IBM Plex Mono', 'SFMono-Regular', ui-monospace, Menlo, Consolas, monospace;
+
+  /* Ritmo */
+  --radius-sm: 8px;
+  --radius-md: 14px;
+  --radius-lg: 20px;
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 24px;
+  --space-6: 32px;
+
+  --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html, body {
+  height: 100%;
+}
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--font-ui);
+  -webkit-font-smoothing: antialiased;
+  -webkit-tap-highlight-color: transparent;
+}
+
+button {
+  font-family: inherit;
+  touch-action: manipulation;
+}
+
+a {
+  color: inherit;
+}
+
+.mono {
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: 'tnum' 1;
+}
+
+/* Reduce movimiento si el usuario lo solicita */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+  }
+}
+
+/* ---- Icon sizing token ---- */
+.icon {
+  display: inline-block;
+  width: 1em;
+  height: 1em;
+  stroke: currentColor;
+  fill: none;
+  flex-shrink: 0;
+}
+
+/* ---- Status pill (conexión) ---- */
+.status-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: 8px 14px;
+  border-radius: 999px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  color: var(--text-dim);
+}
+
+.status-pill .dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--text-faint);
+  flex-shrink: 0;
+}
+
+.status-pill.connecting .dot {
+  background: var(--warning);
+  animation: pulse-dot 1.2s var(--ease-out) infinite;
+}
+
+.status-pill.connected {
+  color: var(--success);
+  border-color: rgba(47, 214, 110, 0.35);
+  background: var(--success-dim);
+}
+
+.status-pill.connected .dot {
+  background: var(--success);
+}
+
+.status-pill.error {
+  color: var(--danger);
+  border-color: rgba(239, 68, 68, 0.35);
+  background: var(--danger-dim);
+}
+
+.status-pill.error .dot {
+  background: var(--danger);
+}
+
+@keyframes pulse-dot {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.35; }
+}
+
+/* ---- Botón volver ---- */
+.back-link {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  color: var(--text-dim);
+  text-decoration: none;
+  font-size: 14px;
+  font-weight: 600;
+  padding: 10px 14px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border);
+  background: var(--surface);
+  transition: border-color 0.2s var(--ease-out), color 0.2s var(--ease-out);
+}
+
+.back-link:hover {
+  color: var(--text);
+  border-color: var(--border-strong);
+}
+
+.back-link .icon {
+  width: 16px;
+  height: 16px;
+}

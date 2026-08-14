@@ -1,626 +1,681 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Control - Cronómetros</title>
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-        
-        body {
-            background: #000;
-            color: #fff;
-            font-family: Arial, sans-serif;
-            padding: 20px;
-            padding-bottom: 100px;
-        }
-        
-        .container {
-            max-width: 600px;
-            margin: 0 auto;
-        }
-        
-        .back-btn {
-            display: inline-block;
-            background: #111;
-            color: #ff8c00;
-            padding: 10px 20px;
-            border-radius: 8px;
-            border: 2px solid #ff8c00;
-            text-decoration: none;
-            font-size: 14px;
-            font-weight: bold;
-            margin-bottom: 20px;
-            transition: all 0.3s;
-        }
-        
-        .back-btn:hover {
-            background: #ff8c00;
-            color: #000;
-        }
-        
-        .status {
-            text-align: center;
-            padding: 15px;
-            background: #111;
-            border: 2px solid #ff8c00;
-            border-radius: 8px;
-            margin-bottom: 20px;
-            font-size: 14px;
-        }
-        
-        .status.connected {
-            border-color: #00ff00;
-            color: #00ff00;
-        }
-        
-        .status.error {
-            border-color: #ff0000;
-            color: #ff0000;
-        }
-        
-        .current-timer {
-            background: #111;
-            border: 4px solid #ff8c00;
-            border-radius: 12px;
-            padding: 30px;
-            text-align: center;
-            margin-bottom: 20px;
-        }
-        
-        .current-label {
-            font-size: 24px;
-            color: #ff8c00;
-            margin-bottom: 10px;
-            text-transform: uppercase;
-            font-weight: bold;
-        }
-        
-        .current-time {
-            font-size: 72px;
-            font-weight: bold;
-            color: #fff;
-            margin-bottom: 10px;
-        }
-        
-        .current-status {
-            font-size: 18px;
-            color: #999;
-        }
-        
-        .current-status.running {
-            color: #00ff00;
-        }
-        
-        select {
-            width: 100%;
-            padding: 15px;
-            font-size: 20px;
-            background: #111;
-            color: #fff;
-            border: 3px solid #ff8c00;
-            border-radius: 8px;
-            margin-bottom: 20px;
-            cursor: pointer;
-        }
-        
-        .buttons {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 15px;
-            margin-bottom: 20px;
-        }
-        
-        button {
-            padding: 25px;
-            font-size: 24px;
-            font-weight: bold;
-            border: none;
-            border-radius: 8px;
-            cursor: pointer;
-            transition: all 0.3s;
-        }
-        
-        button:active {
-            transform: scale(0.95);
-        }
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Control · Cronómetros HYROX</title>
+<link rel="stylesheet" href="assets/styles.css">
+<style>
+  body {
+    min-height: 100dvh;
+    padding: var(--space-4) var(--space-4) calc(var(--space-4) + env(safe-area-inset-bottom, 0px));
+  }
 
-        button:disabled {
-            opacity: 0.5;
-            cursor: not-allowed;
-        }
-        
-        .btn-start {
-            background: #ff8c00;
-            color: #000;
-        }
-        
-        .btn-start:hover:not(:disabled) {
-            background: #cc7000;
-        }
-        
-        .btn-start.paused {
-            background: #00ff00;
-        }
-        
-        .btn-reset {
-            background: #fff;
-            color: #000;
-            position: relative;
-            overflow: hidden;
-        }
-        
-        .btn-reset:hover:not(:disabled) {
-            background: #ccc;
-        }
-        
-        .btn-reset-all {
-            width: 100%;
-            padding: 20px;
-            background: #dc3545;
-            color: #fff;
-            position: relative;
-            overflow: hidden;
-        }
-        
-        .btn-reset-all:hover:not(:disabled) {
-            background: #c82333;
-        }
-        
-        .progress-bar {
-            position: absolute;
-            bottom: 0;
-            left: 0;
-            height: 5px;
-            background: #ff8c00;
-            width: 0%;
-            transition: width 0.1s linear;
-        }
-        
-        .progress-text {
-            text-align: center;
-            color: #ff8c00;
-            margin: 10px 0;
-            font-size: 14px;
-            font-weight: bold;
-        }
-        
-        .grid-preview {
-            display: grid;
-            grid-template-columns: repeat(5, 1fr);
-            gap: 8px;
-            margin-top: 20px;
-        }
-        
-        .mini-timer {
-            background: #111;
-            border: 2px solid #333;
-            border-radius: 6px;
-            padding: 8px;
-            text-align: center;
-            cursor: pointer;
-            transition: all 0.2s;
-        }
-        
-        .mini-timer:hover {
-            border-color: #ff8c00;
-        }
-        
-        .mini-timer.selected {
-            border-color: #ff8c00;
-            background: #1a1a1a;
-        }
-        
-        .mini-timer.running {
-            border-color: #00ff00;
-            box-shadow: 0 0 10px rgba(0, 255, 0, 0.3);
-        }
-        
-        .mini-label {
-            font-size: 10px;
-            color: #999;
-            margin-bottom: 3px;
-            text-transform: uppercase;
-        }
-        
-        .mini-time {
-            font-size: 14px;
-            font-weight: bold;
-        }
-        
-        .section-title {
-            color: #ff8c00;
-            font-size: 18px;
-            font-weight: bold;
-            margin: 20px 0 10px;
-            text-transform: uppercase;
-        }
+  .container {
+    max-width: 480px;
+    margin: 0 auto;
+  }
 
-        .debug-btn {
-            background: #333;
-            color: #fff;
-            padding: 10px 15px;
-            border-radius: 5px;
-            font-size: 12px;
-            margin-left: 10px;
-            cursor: pointer;
-        }
-    </style>
+  header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--space-3);
+    margin-bottom: var(--space-4);
+  }
+
+  /* ---- Tarjeta del cronómetro seleccionado ---- */
+  .current-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    padding: var(--space-6) var(--space-5);
+    text-align: center;
+    margin-bottom: var(--space-4);
+    position: relative;
+    overflow: hidden;
+    transition: border-color 0.25s var(--ease-out);
+  }
+
+  .current-card.running {
+    border-color: rgba(47, 214, 110, 0.4);
+  }
+
+  .current-label {
+    font-size: 14px;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    color: var(--accent);
+    text-transform: uppercase;
+    margin-bottom: var(--space-3);
+  }
+
+  .current-time {
+    font-size: clamp(56px, 18vw, 84px);
+    font-weight: 700;
+    line-height: 1;
+    color: var(--text);
+    margin-bottom: var(--space-4);
+  }
+
+  .current-status {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-2);
+    font-size: 13px;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: var(--text-faint);
+  }
+
+  .current-status .icon {
+    width: 14px;
+    height: 14px;
+  }
+
+  .current-status.running {
+    color: var(--success);
+  }
+
+  /* ---- Selector de Hit ---- */
+  select {
+    width: 100%;
+    padding: 14px 16px;
+    font-size: 16px;
+    font-weight: 600;
+    background: var(--surface);
+    color: var(--text);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    margin-bottom: var(--space-4);
+    appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%239aa0ab' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 14px center;
+    background-size: 18px;
+  }
+
+  /* ---- Botones principales ---- */
+  .buttons {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: var(--space-3);
+    margin-bottom: var(--space-5);
+  }
+
+  button {
+    border: none;
+    border-radius: var(--radius-md);
+    cursor: pointer;
+    min-height: 64px;
+  }
+
+  button:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+  }
+
+  .btn-start {
+    background: var(--accent);
+    color: #17110a;
+    font-size: 17px;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--space-2);
+    transition: background 0.2s var(--ease-out), transform 0.12s var(--ease-out);
+  }
+
+  .btn-start:active:not(:disabled) {
+    transform: scale(0.97);
+  }
+
+  .btn-start.paused {
+    background: var(--success);
+  }
+
+  .btn-start .icon {
+    width: 20px;
+    height: 20px;
+  }
+
+  .btn-reset {
+    background: var(--surface);
+    border: 1px solid var(--border-strong);
+    color: var(--text);
+    font-size: 15px;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--space-2);
+    position: relative;
+    overflow: hidden;
+  }
+
+  .btn-reset .icon {
+    width: 18px;
+    height: 18px;
+  }
+
+  .progress-fill {
+    position: absolute;
+    inset: 0;
+    background: var(--accent-dim);
+    width: 0%;
+    transition: width 0.1s linear;
+    pointer-events: none;
+  }
+
+  .hold-hint {
+    text-align: center;
+    color: var(--text-dim);
+    font-size: 12px;
+    font-weight: 600;
+    margin: -8px 0 var(--space-4);
+    min-height: 16px;
+  }
+
+  /* ---- Grilla de Hits ---- */
+  .section-title {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin: var(--space-2) 0 var(--space-3);
+  }
+
+  .section-title h2 {
+    font-size: 13px;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--text-dim);
+  }
+
+  .debug-btn {
+    background: transparent;
+    border: none;
+    color: var(--text-faint);
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    min-height: auto;
+    padding: 4px 6px;
+    text-decoration: underline;
+    text-underline-offset: 2px;
+  }
+
+  .grid-preview {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: var(--space-2);
+    margin-bottom: var(--space-6);
+  }
+
+  .mini-timer {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    padding: 10px 6px;
+    text-align: center;
+    cursor: pointer;
+    min-height: 60px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: 4px;
+    transition: border-color 0.15s var(--ease-out), background 0.15s var(--ease-out);
+  }
+
+  .mini-timer:active {
+    background: var(--surface-2);
+  }
+
+  .mini-timer.selected {
+    border-color: var(--accent);
+    background: var(--accent-dim);
+  }
+
+  .mini-timer.running {
+    border-color: rgba(47, 214, 110, 0.5);
+  }
+
+  .mini-label {
+    font-size: 10px;
+    font-weight: 700;
+    color: var(--text-faint);
+    letter-spacing: 0.04em;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 3px;
+  }
+
+  .mini-timer.running .mini-label {
+    color: var(--success);
+  }
+
+  .mini-label .run-dot {
+    width: 5px;
+    height: 5px;
+    border-radius: 50%;
+    background: var(--success);
+    flex-shrink: 0;
+  }
+
+  .mini-time {
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--text);
+  }
+
+  /* ---- Zona de peligro ---- */
+  .danger-zone {
+    border-top: 1px solid var(--border);
+    padding-top: var(--space-5);
+  }
+
+  .danger-zone-label {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    color: var(--text-faint);
+    margin-bottom: var(--space-3);
+  }
+
+  .danger-zone-label .icon {
+    width: 14px;
+    height: 14px;
+    color: var(--danger);
+  }
+
+  .btn-reset-all {
+    width: 100%;
+    min-height: 56px;
+    background: rgba(239, 68, 68, 0.1);
+    border: 1px solid rgba(239, 68, 68, 0.35);
+    color: var(--danger);
+    font-size: 15px;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--space-2);
+    position: relative;
+    overflow: hidden;
+  }
+
+  .btn-reset-all .icon {
+    width: 18px;
+    height: 18px;
+  }
+
+  .progress-fill-all {
+    position: absolute;
+    inset: 0;
+    background: rgba(239, 68, 68, 0.25);
+    width: 0%;
+    transition: width 0.1s linear;
+    pointer-events: none;
+  }
+</style>
 </head>
 <body>
-    <div class="container">
-        <a href="index.html" class="back-btn">← VOLVER AL MENÚ</a>
-        
-        <div class="status" id="status">⚠️ Conectando...</div>
-        
-        <div class="current-timer">
-            <div class="current-label" id="currentLabel">Hit 1</div>
-            <div class="current-time" id="currentTime">00:00</div>
-            <div class="current-status" id="currentStatus">⏸ DETENIDO</div>
-        </div>
-        
-        <select id="groupSelect"></select>
-        
-        <div class="buttons">
-            <button class="btn-start" id="btnStart" disabled>▶ INICIAR</button>
-            <button class="btn-reset" id="btnReset" disabled>
-                🔄 RESET
-                <div class="progress-bar" id="progressBar"></div>
-            </button>
-        </div>
-        
-        <div id="resetProgress" style="display:none;">
-            <div class="progress-text">Mantenga presionado 3 segundos...</div>
-        </div>
-        
-        <button class="btn-reset-all" id="btnResetAll" disabled>
-            🔄 RESETEAR TODOS
-            <div class="progress-bar" id="progressBarAll"></div>
-        </button>
-        
-        <div id="resetAllProgress" style="display:none;">
-            <div class="progress-text">Mantenga presionado 5 segundos...</div>
-        </div>
-        
-        <div class="section-title">
-            Estado de todos los Hits:
-            <button class="debug-btn" id="debugBtn">🔍 Debug</button>
-        </div>
-        <div class="grid-preview" id="gridPreview"></div>
+  <div class="container">
+    <header>
+      <a href="index.html" class="back-link">
+        <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg>
+        Menú
+      </a>
+      <div class="status-pill connecting" id="status">
+        <span class="dot"></span>
+        <span id="statusText">Conectando</span>
+      </div>
+    </header>
+
+    <div class="current-card" id="currentCard">
+      <div class="current-label" id="currentLabel">Hit 1</div>
+      <div class="current-time mono" id="currentTime">00:00</div>
+      <div class="current-status" id="currentStatus">
+        <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="6" y="6" width="12" height="12" rx="1"/></svg>
+        <span id="currentStatusText">Detenido</span>
+      </div>
     </div>
 
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.39.3/dist/umd/supabase.min.js"></script>
-    <script>
-        // ============================================
-        // CONFIGURACIÓN SUPABASE
-        // ============================================
-        const SUPABASE_URL = 'https://diuamkiidwpctdrqdzcd.supabase.co';
-        const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRpdWFta2lpZHdwY3RkcnFkemNkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjU2ODc4MDMsImV4cCI6MjA4MTI2MzgwM30.rQ2kU9zfxJ-mLQac63oi4TrPTg7e1-BZifaECVAdFyw';
+    <select id="groupSelect" aria-label="Seleccionar Hit"></select>
 
-        const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-        let isConnected = false;
+    <div class="buttons">
+      <button class="btn-start" id="btnStart" disabled>
+        <svg class="icon" id="btnStartIcon" viewBox="0 0 24 24" fill="currentColor" stroke="none"><path d="M8 5v14l11-7z"/></svg>
+        <span id="btnStartText">Iniciar</span>
+      </button>
+      <button class="btn-reset" id="btnReset" disabled>
+        <div class="progress-fill" id="progressBar"></div>
+        <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 3-6.7"/><path d="M3 4v5h5"/></svg>
+        <span>Reset</span>
+      </button>
+    </div>
+    <div class="hold-hint" id="resetHint"></div>
 
-        // ============================================
-        // VARIABLES GLOBALES
-        // ============================================
-        let selectedGroup = 1;
-        const timers = {};
-        let resetTimeout = null;
-        let resetAllTimeout = null;
-        let resetInterval = null;
-        let resetAllInterval = null;
+    <div class="section-title">
+      <h2>Estado de todos los Hits</h2>
+      <button class="debug-btn" id="debugBtn">Debug</button>
+    </div>
+    <div class="grid-preview" id="gridPreview"></div>
 
-        // ============================================
-        // FORMATO MM:SS
-        // ============================================
-        function formatTime(ms) {
-            let totalSeconds = Math.floor(ms / 1000);
-            let minutes = Math.floor(totalSeconds / 60);
-            let seconds = totalSeconds % 60;
-            if (minutes > 99) minutes = 99;
-            return `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
+    <div class="danger-zone">
+      <div class="danger-zone-label">
+        <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><path d="M12 9v4"/><path d="M12 17h.01"/></svg>
+        Zona de riesgo
+      </div>
+      <button class="btn-reset-all" id="btnResetAll" disabled>
+        <div class="progress-fill-all" id="progressBarAll"></div>
+        <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/></svg>
+        <span>Resetear todos</span>
+      </button>
+      <div class="hold-hint" id="resetAllHint"></div>
+    </div>
+  </div>
+
+  <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-database-compat.js"></script>
+  <script src="assets/firebase-config.js"></script>
+  <script>
+    // ============================================
+    // CONFIGURACIÓN FIREBASE
+    // Credenciales reales en assets/firebase-config.js
+    // ============================================
+    firebase.initializeApp(FIREBASE_CONFIG);
+    const db = firebase.database();
+    const cronometrosRef = db.ref('cronometros');
+    let isConnected = false;
+
+    // ============================================
+    // VARIABLES GLOBALES
+    // ============================================
+    let selectedGroup = 1;
+    const timers = {};
+    let resetTimeout = null;
+    let resetAllTimeout = null;
+    let resetInterval = null;
+    let resetAllInterval = null;
+
+    const MAX_MS = 99 * 60 * 1000 + 59 * 1000;
+
+    // ============================================
+    // FORMATO MM:SS (con tope en 99:59)
+    // ============================================
+    function formatTime(ms) {
+      if (ms > MAX_MS) ms = MAX_MS;
+      let totalSeconds = Math.floor(ms / 1000);
+      let minutes = Math.floor(totalSeconds / 60);
+      let seconds = totalSeconds % 60;
+      return `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
+    }
+
+    function elapsedFor(timer, now) {
+      let ms = timer.elapsed;
+      if (timer.running && timer.startTime) ms += now - timer.startTime;
+      return Math.min(ms, MAX_MS);
+    }
+
+    // ============================================
+    // CREAR UI
+    // ============================================
+    const groupSelect = document.getElementById('groupSelect');
+    const gridPreview = document.getElementById('gridPreview');
+
+    for (let i = 1; i <= 20; i++) {
+      const option = document.createElement('option');
+      option.value = i;
+      option.textContent = `Hit ${i}`;
+      groupSelect.appendChild(option);
+
+      const mini = document.createElement('div');
+      mini.className = 'mini-timer';
+      mini.id = `mini${i}`;
+      mini.onclick = () => {
+        selectedGroup = i;
+        groupSelect.value = i;
+        updateUI();
+      };
+      mini.innerHTML = `
+        <div class="mini-label"><span class="run-dot" style="display:none"></span>Hit ${i}</div>
+        <div class="mini-time mono" id="miniTime${i}">00:00</div>
+      `;
+      gridPreview.appendChild(mini);
+
+      timers[i] = { running: false, startTime: 0, elapsed: 0 };
+    }
+
+    // ============================================
+    // CARGAR / SEMBRAR DATOS INICIALES
+    // ============================================
+    async function loadInitialData() {
+      const statusEl = document.getElementById('status');
+      const statusText = document.getElementById('statusText');
+      try {
+        const snapshot = await cronometrosRef.get();
+        const data = snapshot.val();
+
+        if (!data || Object.keys(data).length < 20) {
+          const seed = {};
+          for (let i = 1; i <= 20; i++) {
+            seed[i] = (data && data[i]) ? data[i] : { running: false, start_time: 0, elapsed: 0 };
+          }
+          await cronometrosRef.set(seed);
         }
 
-        // ============================================
-        // CREAR UI
-        // ============================================
-        const groupSelect = document.getElementById('groupSelect');
-        const gridPreview = document.getElementById('gridPreview');
+        statusEl.className = 'status-pill connected';
+        statusText.textContent = 'Conectado';
 
-        for (let i = 1; i <= 20; i++) {
-            const option = document.createElement('option');
-            option.value = i;
-            option.textContent = `Hit ${i}`;
-            groupSelect.appendChild(option);
-            
-            const mini = document.createElement('div');
-            mini.className = 'mini-timer';
-            mini.id = `mini${i}`;
-            mini.onclick = () => {
-                selectedGroup = i;
-                groupSelect.value = i;
-                updateUI();
-            };
-            mini.innerHTML = `
-                <div class="mini-label">Hit ${i}</div>
-                <div class="mini-time" id="miniTime${i}">00:00</div>
-            `;
-            gridPreview.appendChild(mini);
-            
-            timers[i] = {
-                running: false,
-                startTime: 0,
-                elapsed: 0
-            };
+        document.getElementById('btnStart').disabled = false;
+        document.getElementById('btnReset').disabled = false;
+        document.getElementById('btnResetAll').disabled = false;
+
+        isConnected = true;
+      } catch (error) {
+        console.error('Error:', error);
+        statusEl.className = 'status-pill error';
+        statusText.textContent = error.message;
+      }
+    }
+
+    // ============================================
+    // TIEMPO REAL
+    // ============================================
+    cronometrosRef.on('value', (snapshot) => {
+      const data = snapshot.val();
+      if (!data) return;
+      for (let i = 1; i <= 20; i++) {
+        const item = data[i];
+        if (!item) continue;
+        timers[i] = {
+          running: item.running || false,
+          startTime: item.start_time || 0,
+          elapsed: item.elapsed || 0
+        };
+      }
+      updateUI();
+    });
+
+    // ============================================
+    // ACTUALIZAR UI
+    // ============================================
+    function updateUI() {
+      const now = Date.now();
+
+      for (let i = 1; i <= 20; i++) {
+        const ms = elapsedFor(timers[i], now);
+        document.getElementById('miniTime' + i).textContent = formatTime(ms);
+
+        const miniDiv = document.getElementById('mini' + i);
+        miniDiv.classList.toggle('running', timers[i].running);
+        miniDiv.classList.toggle('selected', i === selectedGroup);
+        miniDiv.querySelector('.run-dot').style.display = timers[i].running ? 'inline-block' : 'none';
+      }
+
+      const timer = timers[selectedGroup];
+      const ms = elapsedFor(timer, now);
+
+      document.getElementById('currentLabel').textContent = `Hit ${selectedGroup}`;
+      document.getElementById('currentTime').textContent = formatTime(ms);
+      document.getElementById('currentCard').classList.toggle('running', timer.running);
+
+      const statusEl = document.getElementById('currentStatus');
+      document.getElementById('currentStatusText').textContent = timer.running ? 'Corriendo' : 'Detenido';
+      statusEl.classList.toggle('running', timer.running);
+
+      const btnStart = document.getElementById('btnStart');
+      document.getElementById('btnStartText').textContent = timer.running ? 'Pausar' : 'Iniciar';
+      document.getElementById('btnStartIcon').innerHTML = timer.running
+        ? '<path d="M6 5h4v14H6zM14 5h4v14h-4z"/>'
+        : '<path d="M8 5v14l11-7z"/>';
+      btnStart.classList.toggle('paused', timer.running);
+    }
+
+    setInterval(updateUI, 100);
+
+    // ============================================
+    // EVENTOS
+    // ============================================
+    groupSelect.addEventListener('change', (e) => {
+      selectedGroup = parseInt(e.target.value);
+      updateUI();
+    });
+
+    document.getElementById('btnStart').addEventListener('click', async () => {
+      if (!isConnected) return;
+
+      const timer = timers[selectedGroup];
+      const newRunning = !timer.running;
+
+      try {
+        const updateData = {
+          running: newRunning,
+          start_time: newRunning ? Date.now() : timer.startTime,
+          elapsed: newRunning ? timer.elapsed : (timer.elapsed + (Date.now() - timer.startTime))
+        };
+
+        await cronometrosRef.child(selectedGroup).update(updateData);
+      } catch (error) {
+        console.error('Error:', error);
+        alert('Error: ' + error.message);
+      }
+    });
+
+    // RESET (mantener 3 segundos)
+    const btnReset = document.getElementById('btnReset');
+    const progressBar = document.getElementById('progressBar');
+    const resetHint = document.getElementById('resetHint');
+
+    function startReset() {
+      if (!isConnected) return;
+      let progress = 0;
+
+      resetInterval = setInterval(() => {
+        progress += 3.33;
+        progressBar.style.width = progress + '%';
+        resetHint.textContent = `Mantén presionado... ${Math.ceil((100 - progress) / 33.3)}s`;
+      }, 100);
+
+      resetTimeout = setTimeout(async () => {
+        clearInterval(resetInterval);
+        try {
+          await cronometrosRef.child(selectedGroup).update({ running: false, start_time: 0, elapsed: 0 });
+        } catch (error) {
+          console.error('Error:', error);
         }
+        progressBar.style.width = '0%';
+        resetHint.textContent = '';
+      }, 3000);
+    }
 
-        // ============================================
-        // CARGAR DATOS INICIALES
-        // ============================================
-        async function loadInitialData() {
-            try {
-                console.log('Cargando datos...');
-                const { data, error } = await supabase
-                    .from('cronometros')
-                    .select('*')
-                    .order('grupo');
-                
-                if (error) {
-                    console.error('Error:', error);
-                    throw error;
-                }
-                
-                console.log('Datos recibidos:', data);
-                
-                if (!data || data.length === 0) {
-                    throw new Error('La tabla está vacía');
-                }
+    function cancelReset() {
+      if (resetTimeout) {
+        clearTimeout(resetTimeout);
+        clearInterval(resetInterval);
+        progressBar.style.width = '0%';
+        resetHint.textContent = '';
+      }
+    }
 
-                if (data.length < 20) {
-                    throw new Error(`Solo hay ${data.length} registros, se necesitan 20`);
-                }
-                
-                data.forEach(item => {
-                    timers[item.grupo] = {
-                        running: item.running || false,
-                        startTime: item.start_time || 0,
-                        elapsed: item.elapsed || 0
-                    };
-                });
-                
-                document.getElementById('status').textContent = '✅ Conectado';
-                document.getElementById('status').classList.add('connected');
-                
-                document.getElementById('btnStart').disabled = false;
-                document.getElementById('btnReset').disabled = false;
-                document.getElementById('btnResetAll').disabled = false;
-                
-                isConnected = true;
-                updateUI();
-                
-            } catch (error) {
-                console.error('Error:', error);
-                document.getElementById('status').textContent = '❌ ' + error.message;
-                document.getElementById('status').classList.add('error');
-            }
+    btnReset.addEventListener('mousedown', startReset);
+    btnReset.addEventListener('touchstart', startReset, { passive: true });
+    btnReset.addEventListener('mouseup', cancelReset);
+    btnReset.addEventListener('touchend', cancelReset);
+    btnReset.addEventListener('mouseleave', cancelReset);
+
+    // RESET ALL (mantener 5 segundos)
+    const btnResetAll = document.getElementById('btnResetAll');
+    const progressBarAll = document.getElementById('progressBarAll');
+    const resetAllHint = document.getElementById('resetAllHint');
+
+    function startResetAll() {
+      if (!isConnected) return;
+      let progress = 0;
+
+      resetAllInterval = setInterval(() => {
+        progress += 2;
+        progressBarAll.style.width = progress + '%';
+        resetAllHint.textContent = `Mantén presionado... ${Math.ceil((100 - progress) / 20)}s`;
+      }, 100);
+
+      resetAllTimeout = setTimeout(async () => {
+        clearInterval(resetAllInterval);
+        try {
+          const updates = {};
+          for (let i = 1; i <= 20; i++) {
+            updates[i] = { running: false, start_time: 0, elapsed: 0 };
+          }
+          await cronometrosRef.update(updates);
+        } catch (error) {
+          console.error('Error:', error);
         }
+        progressBarAll.style.width = '0%';
+        resetAllHint.textContent = '';
+      }, 5000);
+    }
 
-        // ============================================
-        // TIEMPO REAL
-        // ============================================
-        const channel = supabase
-            .channel('cronometros-control')
-            .on(
-                'postgres_changes',
-                { event: '*', schema: 'public', table: 'cronometros' },
-                (payload) => {
-                    console.log('Cambio recibido:', payload);
-                    const grupo = payload.new.grupo;
-                    timers[grupo] = {
-                        running: payload.new.running,
-                        startTime: payload.new.start_time,
-                        elapsed: payload.new.elapsed
-                    };
-                    updateUI();
-                }
-            )
-            .subscribe((status) => {
-                console.log('Estado suscripción:', status);
-            });
+    function cancelResetAll() {
+      if (resetAllTimeout) {
+        clearTimeout(resetAllTimeout);
+        clearInterval(resetAllInterval);
+        progressBarAll.style.width = '0%';
+        resetAllHint.textContent = '';
+      }
+    }
 
-        // ============================================
-        // ACTUALIZAR UI
-        // ============================================
-        function updateUI() {
-            const now = Date.now();
-            
-            for (let i = 1; i <= 20; i++) {
-                let ms = timers[i].elapsed;
-                if (timers[i].running && timers[i].startTime) {
-                    ms += now - timers[i].startTime;
-                }
-                
-                document.getElementById('miniTime' + i).textContent = formatTime(ms);
-                
-                const miniDiv = document.getElementById('mini' + i);
-                miniDiv.classList.toggle('running', timers[i].running);
-                miniDiv.classList.toggle('selected', i === selectedGroup);
-            }
-            
-            const timer = timers[selectedGroup];
-            let ms = timer.elapsed;
-            if (timer.running && timer.startTime) {
-                ms += now - timer.startTime;
-            }
-            
-            document.getElementById('currentLabel').textContent = `Hit ${selectedGroup}`;
-            document.getElementById('currentTime').textContent = formatTime(ms);
-            
-            const statusEl = document.getElementById('currentStatus');
-            statusEl.textContent = timer.running ? '▶ CORRIENDO' : '⏸ DETENIDO';
-            statusEl.classList.toggle('running', timer.running);
-            
-            const btnStart = document.getElementById('btnStart');
-            btnStart.textContent = timer.running ? '⏸ PAUSAR' : '▶ INICIAR';
-            btnStart.classList.toggle('paused', timer.running);
-        }
+    btnResetAll.addEventListener('mousedown', startResetAll);
+    btnResetAll.addEventListener('touchstart', startResetAll, { passive: true });
+    btnResetAll.addEventListener('mouseup', cancelResetAll);
+    btnResetAll.addEventListener('touchend', cancelResetAll);
+    btnResetAll.addEventListener('mouseleave', cancelResetAll);
 
-        setInterval(updateUI, 100);
+    // DEBUG
+    document.getElementById('debugBtn').addEventListener('click', async () => {
+      console.log('Database URL:', FIREBASE_CONFIG.databaseURL);
+      console.log('Connected:', isConnected);
+      console.log('Timers:', timers);
+      try {
+        const snapshot = await cronometrosRef.get();
+        console.log('DB Data:', snapshot.val());
+        alert('Revisa la consola (F12)');
+      } catch (err) {
+        console.error('Error:', err);
+      }
+    });
 
-        // ============================================
-        // EVENTOS
-        // ============================================
-        groupSelect.addEventListener('change', (e) => {
-            selectedGroup = parseInt(e.target.value);
-            updateUI();
-        });
-
-        document.getElementById('btnStart').addEventListener('click', async () => {
-            if (!isConnected) return;
-            
-            const timer = timers[selectedGroup];
-            const newRunning = !timer.running;
-            
-            try {
-                const updateData = {
-                    running: newRunning,
-                    start_time: newRunning ? Date.now() : timer.startTime,
-                    elapsed: newRunning ? timer.elapsed : 
-                        (timer.elapsed + (Date.now() - timer.startTime))
-                };
-                
-                console.log('Actualizando:', selectedGroup, updateData);
-                
-                const { error } = await supabase
-                    .from('cronometros')
-                    .update(updateData)
-                    .eq('grupo', selectedGroup);
-                
-                if (error) throw error;
-                
-            } catch (error) {
-                console.error('Error:', error);
-                alert('Error: ' + error.message);
-            }
-        });
-
-        // RESET (3 segundos)
-        const btnReset = document.getElementById('btnReset');
-        const progressBar = document.getElementById('progressBar');
-        const resetProgressDiv = document.getElementById('resetProgress');
-
-        function startReset() {
-            if (!isConnected) return;
-            resetProgressDiv.style.display = 'block';
-            let progress = 0;
-            
-            resetInterval = setInterval(() => {
-                progress += 3.33;
-                progressBar.style.width = progress + '%';
-            }, 100);
-            
-            resetTimeout = setTimeout(async () => {
-                clearInterval(resetInterval);
-                try {
-                    await supabase
-                        .from('cronometros')
-                        .update({ running: false, start_time: 0, elapsed: 0 })
-                        .eq('grupo', selectedGroup);
-                } catch (error) {
-                    console.error('Error:', error);
-                }
-                resetProgressDiv.style.display = 'none';
-                progressBar.style.width = '0%';
-            }, 3000);
-        }
-
-        function cancelReset() {
-            if (resetTimeout) {
-                clearTimeout(resetTimeout);
-                clearInterval(resetInterval);
-                resetProgressDiv.style.display = 'none';
-                progressBar.style.width = '0%';
-            }
-        }
-
-        btnReset.addEventListener('mousedown', startReset);
-        btnReset.addEventListener('touchstart', startReset);
-        btnReset.addEventListener('mouseup', cancelReset);
-        btnReset.addEventListener('touchend', cancelReset);
-        btnReset.addEventListener('mouseleave', cancelReset);
-
-        // RESET ALL (5 segundos)
-        const btnResetAll = document.getElementById('btnResetAll');
-        const progressBarAll = document.getElementById('progressBarAll');
-        const resetAllProgressDiv = document.getElementById('resetAllProgress');
-
-        function startResetAll() {
-            if (!isConnected) return;
-            resetAllProgressDiv.style.display = 'block';
-            let progress = 0;
-            
-            resetAllInterval = setInterval(() => {
-                progress += 2;
-                progressBarAll.style.width = progress + '%';
-            }, 100);
-            
-            resetAllTimeout = setTimeout(async () => {
-                clearInterval(resetAllInterval);
-                try {
-                    for (let i = 1; i <= 20; i++) {
-                        await supabase
-                            .from('cronometros')
-                            .update({ running: false, start_time: 0, elapsed: 0 })
-                            .eq('grupo', i);
-                    }
-                } catch (error) {
-                    console.error('Error:', error);
-                }
-                resetAllProgressDiv.style.display = 'none';
-                progressBarAll.style.width = '0%';
-            }, 5000);
-        }
-
-        function cancelResetAll() {
-            if (resetAllTimeout) {
-                clearTimeout(resetAllTimeout);
-                clearInterval(resetAllInterval);
-                resetAllProgressDiv.style.display = 'none';
-                progressBarAll.style.width = '0%';
-            }
-        }
-
-        btnResetAll.addEventListener('mousedown', startResetAll);
-        btnResetAll.addEventListener('touchstart', startResetAll);
-        btnResetAll.addEventListener('mouseup', cancelResetAll);
-        btnResetAll.addEventListener('touchend', cancelResetAll);
-        btnResetAll.addEventListener('mouseleave', cancelResetAll);
-
-        // DEBUG
-        document.getElementById('debugBtn').addEventListener('click', async () => {
-            console.log('=== DEBUG ===');
-            console.log('URL:', SUPABASE_URL);
-            console.log('Connected:', isConnected);
-            console.log('Timers:', timers);
-            
-            try {
-                const { data, error } = await supabase.from('cronometros').select('*');
-                console.log('DB Data:', data);
-                if (error) console.error('Error:', error);
-                alert('Revisa la consola (F12)');
-            } catch (err) {
-                console.error('Error:', err);
-            }
-        });
-
-        // ============================================
-        // INICIALIZAR
-        // ============================================
-        loadInitialData();
-    </script>
+    // ============================================
+    // INICIALIZAR
+    // ============================================
+    loadInitialData();
+  </script>
 </body>
 </html>
