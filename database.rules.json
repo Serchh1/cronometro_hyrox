@@ -1,0 +1,17 @@
+{
+  "rules": {
+    ".read": false,
+    ".write": false,
+    "cronometros": {
+      ".read": true,
+      ".write": true,
+      "$hit": {
+        ".validate": "$hit.matches(/^([1-9]|1[0-9]|20)$/) && newData.hasChildren(['running','start_time','elapsed'])",
+        "running":    { ".validate": "newData.isBoolean()" },
+        "start_time": { ".validate": "newData.isNumber() && newData.val() >= 0" },
+        "elapsed":    { ".validate": "newData.isNumber() && newData.val() >= 0" },
+        "$other":     { ".validate": false }
+      }
+    }
+  }
+}

@@ -218,7 +218,9 @@
       } catch (error) {
         console.error('Error cargando datos:', error);
         statusEl.className = 'status-pill error';
-        statusText.textContent = error.message;
+        statusText.textContent = /permission/i.test(error.message)
+          ? 'Sin permisos: revisa las reglas de Realtime Database'
+          : error.message;
       }
     }
 
